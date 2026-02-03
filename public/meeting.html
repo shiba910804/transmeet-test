@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>課程進行中</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     :root {
       --primary-color: #0a2463;
@@ -1135,6 +1136,11 @@
         </button>
         <!-- 新增：輸入新 Email 並送出 URL -->
       </div>
+
+      <div id="qrcode-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 25px 0; padding: 20px; background: #ffffff; border-radius: 12px; border: 1px dashed #ddd;">
+        <div id="qrcode"></div> <p style="font-size: 13px; color: #0a2463; margin-top: 12px; font-weight: 500;">📱 手機掃描 QR Code 免登入上課</p>
+      </div>
+
       <div class="share-link-container" style="margin-top:10px;">
           <input type="email" id="manual-email-input" class="share-link-input" placeholder="Add new email…" />
           <button class="copy-btn" id="send-manual-btn" title="send URL">
@@ -1713,8 +1719,27 @@ micOffBtn.addEventListener('click', () => {
         
         currentShareLink = data.shareUrl;
         
+        // 1. 更新輸入框文字
         const shareLinkInput = document.getElementById('share-link');
         shareLinkInput.value = currentShareLink;
+
+        // --- [生成 QR Code] ---
+        const qrcodeElement = document.getElementById("qrcode");
+        if (qrcodeElement) {
+            qrcodeElement.innerHTML = ""; // 每次生成前先清空舊的，防止重複生成
+        
+            // 使用 QRCode 套件生成
+            new QRCode(qrcodeElement, {
+                text: currentShareLink,
+               width: 180,           // 設定寬度
+                height: 180,          // 設定高度
+                colorDark : "#0a2463", // 使用主題藍色
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H // 高容錯等級，適合投影或拍照
+            });
+            console.log('📱 QR Code 已同步更新');
+        }
+        // -------------------------------
         
         // showSuccessMessage('分享連結已生成！');
         
