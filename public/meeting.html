@@ -1477,6 +1477,39 @@ micOffBtn.addEventListener('click', () => {
     async function handleShareLink(shareToken) {
         try {
             console.log('🔗 處理分享連結:', shareToken);
+
+            // 1. [新增]：嘗試進行匿名登入領取門票
+            const anonResponse = await fetch('/api/auth/anonymous-join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shareToken: shareToken })
+            });
+
+            const anonData = await anonResponse.json();
+
+            if (anonData.success) {
+                // A. 匿名登入成功：存入 Token 並設定身份為觀看者
+                localStorage.setItem('authToken', anonData.token);
+                localStorage.setItem('user', JSON.stringify({
+                    id: 'anon',
+                    username: '訪客學生',
+                    role: 'student'
+               }));
+            
+                // 重要：更新全域變數讓後續初始化能跑
+                authToken = anonData.token; 
+                meetingId = anonData.meetingId;
+                userRole = 'viewer';
+            
+                console.log('✅ 匿名登入成功，進入觀看模式');
+                // 匿名者不需要處理後續的資料夾同步（因為沒有帳號），直接執行初始化即可
+                await initializeMeeting();
+                await joinMeetingRoom();
+                bindEventListeners();
+                startDurationTimer();
+                showSuccessMessage('您以觀看者身份進入課程');
+                return true;
+            }
             
             // 檢查認證
             if (!checkAuth()) {
@@ -2058,31 +2091,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    async function handleShareLink(token) {
-        try {
-            const response = await fetch('/api/auth/anonymous-join', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ shareToken: token })
-            });
-            const data = await response.json();
-            if (data.success) {
-                localStorage.setItem('authToken', data.token);
-                localStorage.setItem('user', JSON.stringify({
-                    id: 'anon',
-                    username: '訪客學生',
-                    role: 'student'
-                }));
-                meetingId = data.meetingId;
-                userRole = 'viewer'; 
-                return true;
-            }
-            return false;
-        } catch (err) {
-            console.error('❌ 匿名登入失敗:', err);
-            return false;
-        }
-    }
 
     // Initialize meeting
     async function initializeMeeting() {
