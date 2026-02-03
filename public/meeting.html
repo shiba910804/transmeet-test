@@ -1218,6 +1218,22 @@ micOffBtn.addEventListener('click', () => {
     // Initialize the meeting page
     document.addEventListener('DOMContentLoaded', async () => {
         console.log('課程頁面載入完成');
+
+        // 1. 先抓取 URL 參數
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareToken = urlParams.get('share');
+        meetingId = urlParams.get('id');
+
+        // 2. [關鍵修改]：如果有 shareToken，優先執行匿名登入
+        if (shareToken) {
+            console.log('偵測到分享連結，嘗試匿名登入...');
+            const success = await handleShareLink(shareToken);
+            if (!success) {
+                alert('分享連結無效或已過期');
+                window.location.href = 'auth.html'; // 失敗就去登入頁
+                return;
+            }
+        }
         
         // 檢查認證
         if (!checkAuth()) {
@@ -1227,11 +1243,7 @@ micOffBtn.addEventListener('click', () => {
         // 載入用戶語言偏好
         await loadUserLanguagePreference();
         
-        // 獲取會議 ID 和角色
-        const urlParams = new URLSearchParams(window.location.search);
-        meetingId = urlParams.get('id');
-        const shareToken = urlParams.get('share');
-        
+
         // 處理分享連結
         if (shareToken) {
             await handleShareLink(shareToken);
@@ -2044,6 +2056,32 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'auth.html';
         return false;
       }
+    }
+
+    async function handleShareLink(token) {
+        try {
+            const response = await fetch('/api/auth/anonymous-join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shareToken: token })
+            });
+            const data = await response.json();
+            if (data.success) {
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('user', JSON.stringify({
+                    id: 'anon',
+                    username: '訪客學生',
+                    role: 'student'
+                }));
+                meetingId = data.meetingId;
+                userRole = 'viewer'; 
+                return true;
+            }
+            return false;
+        } catch (err) {
+            console.error('❌ 匿名登入失敗:', err);
+            return false;
+        }
     }
 
     // Initialize meeting

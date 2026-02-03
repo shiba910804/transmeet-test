@@ -3164,6 +3164,59 @@ app.get('/api/folders/:id', requireAuth, async (req, res) => {
   }
 });
 
+// --- [新增] 匿名學生掃碼加入課程 API ---
+app.post('/api/auth/anonymous-join', async (req, res) => {
+  const { shareToken } = req.body;
+  if (!shareToken) return res.status(400).json({ error: '缺少分享代碼' });
+
+  try {
+    // 1. 驗證分享連結 (在你的 meeting_share_links 表中搜尋)
+    const shareQuery = await pool.query(
+      `SELECT sl.*, m.title 
+       FROM meeting_share_links sl
+       JOIN meetings m ON sl.meeting_id = m.id
+       WHERE sl.share_token = $1 AND sl.is_active = true`,
+      [shareToken]
+    );
+
+    if (shareQuery.rows.length === 0) {
+      return res.status(404).json({ error: '連結無效或已失效' });
+    }
+
+    const shareLink = shareQuery.rows[0];
+
+    // 2. 檢查是否過期
+    if (shareLink.expires_at && new Date() > new Date(shareLink.expires_at)) {
+      return res.status(410).json({ error: '此連結已過期' });
+    }
+
+    // 3. 核發臨時 JWT (身份標記為 anonymous)
+    const tempUserId = `anon_${crypto.randomBytes(4).toString('hex')}`;
+    const token = jwt.sign(
+      { 
+        userId: tempUserId, 
+        username: `訪客學生`, 
+        role: 'student', 
+        isAnonymous: true,
+        meetingId: shareLink.meeting_id 
+      },
+      SECRET, // 使用你 server.js 定義的 SECRET
+      { expiresIn: '6h' }
+    );
+
+    return res.json({
+      success: true,
+      token,
+      meetingId: shareLink.meeting_id,
+      meetingTitle: shareLink.title,
+      role: 'viewer'
+    });
+  } catch (err) {
+    console.error('匿名加入失敗:', err);
+    return res.status(500).json({ error: '伺服器錯誤' });
+  }
+});
+
 // 學生加入課程（viewer）
 app.post('/api/meetings/:id/end', requireAuth, async (req, res) => {
   const meetingId = req.params.id;
