@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Signup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+        .form-container {
+            display: box;
+            flex-direction: column;
+        }
+        .tab-container {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+            cursor: pointer;
+            background: #e0e0e0;
+            border: none;
+            font-weight: bold;
+        }
+        .tab.active {
+            background: #0a2463;
+            color: white;
+        }
+        .form {
+            display: none;
+        }
+        .form.active {
+            display: block;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        /* 新的註冊類型選擇樣式 */
+        .registration-selection {
+            margin: 1rem 0;
+        }
+        
+        .registration-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #333;
+            text-align: left;
+        }
+        
+        .registration-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .registration-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #333;
+            background: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .registration-link:hover {
+            border-color: #0a2463;
+            background: #f8f9ff;
+            text-decoration: none;
+            color: #0a2463;
+        }
+        
+        .registration-icon {
+            font-size: 24px;
+            margin-right: 12px;
+            width: 30px;
+            text-align: center;
+        }
+        
+        .registration-text {
+            flex: 1;
+        }
+        
+        .registration-title-text {
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        
+        .registration-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+        
+        .registration-arrow {
+            font-size: 16px;
+            color: #999;
+            margin-left: auto;
+        }
+        
+        button {
+            background-color: #0a2463;
+            color: white;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2c7db3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        .debug-info {
+            background-color: #f0f0f0;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: none;
+        }
+        .toggle-debug {
+            margin-top: 1rem;
+            background: #666;
+            font-size: 0.8rem;
+            padding: 0.5rem;
+        }
+        .connection-status {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tab-container">
+            <button class="tab active" onclick="switchTab('login')">Login</button>
+            <button class="tab" onclick="switchTab('signup')">Register</button>
+        </div>
+
+        <!-- 連接狀態指示器 -->
+        <div id="connection-status" class="connection-status">
+            <span id="status-indicator" style="color: orange;">⚠️ 檢查連接中...</span>
+        </div>
+
+        <div id="login-form" class="form-container">
+            <div class="form active" id="login">
+                <h2>Login</h2>
+                <input type="text" id="login-fullname" placeholder="Student ID" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button id="login-btn" onclick="login()">Login</button>
+                <div style="text-align: right; margin-top: 0.5rem;">
+                    <button type="button" id="forgot-password-btn" style="background: none; border: none; color: #0a2463; text-decoration: underline; cursor: pointer; font-size: 0.9rem; padding: 0;">Forgot Password?</button>
+                </div>
+                <div id="login-message" class="message"></div>
+            </div>
+
+            
+
+            <div class="form" id="signup">
+                <h2>Register</h2>
+                
+                <!-- 註冊類型選擇 -->
+                <div class="registration-selection">
+                    <div class="registration-title">Choose your registration type:</div>
+                    <div class="registration-options">
+                        <a href="student-signup.html" class="registration-link">
+                            <span class="registration-icon">👨‍🎓</span>
+                            <div class="registration-text">
+                                <span class="registration-title-text">Register as Student</span>
+                                <div class="registration-subtitle">Join as a learner</div>
+                            </div>
+                            <span class="registration-arrow">→</span>
+                        </a>
+                        
+                        <a href="teacher-signup.html" class="registration-link">
+                            <span class="registration-icon">👨‍🏫</span>
+                            <div class="registration-text">
+                                <span class="registration-title-text">Register as Teacher</span>
+                                <div class="registration-subtitle">Create and manage courses</div>
+                            </div>
+                            <span class="registration-arrow">→</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+        <div style="background: white; padding: 2rem; border-radius: 8px; width: 400px; max-width: 90%;">
+            <h2 style="margin-top: 0;">Reset Password</h2>
+            <p style="margin-bottom: 1rem;">Enter your email address to receive a password reset link.</p>
+            <input type="email" id="reset-email" placeholder="Email address" style="width: 100%; padding: 0.75rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            <div style="display: flex; gap: 0.5rem;">
+                <button id="send-reset-btn" onclick="sendPasswordReset()" style="flex: 1; background-color: #0a2463; color: white; padding: 0.75rem; border: none; border-radius: 4px; cursor: pointer;">Send Reset Link</button>
+                <button onclick="closeForgotPasswordModal()" style="flex: 1; background-color: #666; color: white; padding: 0.75rem; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+            </div>
+            <div id="reset-message" class="message" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 配置
+        const API_BASE_URL = window.location.origin;
+
+        // 調試模式
+        let debugMode = false;
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const debugInfo = document.getElementById('debug-info');
+            debugInfo.style.display = debugMode ? 'block' : 'none';
+            updateDebugInfo();
+        }
+        
+        function updateDebugInfo() {
+            if (!debugMode) return;
+            
+            const debugContent = document.getElementById('debug-content');
+            debugContent.innerHTML = `
+                當前時間: ${new Date().toLocaleString()}<br>
+                API URL: ${API_BASE_URL}<br>
+                當前頁面: ${window.location.href}<br>
+                User Agent: ${navigator.userAgent.substring(0, 50)}...
+            `;
+        }
+        
+        // 頁面載入時檢查服務器連接
+        window.addEventListener('load', checkServerConnection);
+        
+        async function checkServerConnection() {
+            const el = document.getElementById('status-indicator');
+            const tryFetch = async (url) => {
+                const r = await fetch(url, { cache: 'no-store' });
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            };
+
+            try {
+                const base = API_BASE_URL;
+                let data;
+                try {
+                    data = await tryFetch(`${base}/health`);
+                } catch (e) {
+                    if (String(e.message).includes('404')) {
+                        data = await tryFetch(`${base}/api/health`);
+                    } else {
+                        throw e;
+                    }
+                }
+                el.textContent = '✅ 服務器連接正常';
+                el.style.color = 'green';
+                console.log('服務器狀態:', data);
+            } catch (err) {
+                el.textContent = '❌ 服務器連接失敗';
+                el.style.color = 'red';
+                showMessage('login-message', `連接失敗: ${err.message}`, false);
+            }
+        }
+
+        function switchTab(tabName) {
+            // Switch active tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            // Switch active form
+            document.querySelectorAll('.form').forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            
+            // 清除消息
+            document.getElementById('login-message').style.display = 'none';
+        }
+
+        function showMessage(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = isSuccess ? 'message success' : 'message error';
+            element.style.display = 'block';
+            
+            console.log(`${isSuccess ? '✅' : '❌'} ${elementId}: ${message}`);
+        }
+        
+        function setButtonLoading(buttonId, loading) {
+            const button = document.getElementById(buttonId);
+            button.disabled = loading;
+            if (loading) {
+                button.textContent = '處理中...';
+            } else {
+                button.textContent = 'Login';
+            }
+        }
+
+        async function login() {
+            const full_name = document.getElementById('login-fullname').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            if (!full_name || !password) {
+                showMessage('login-message', 'Please enter your Student ID and password', false);
+                return;
+            }
+
+            setButtonLoading('login-btn', true);
+            console.log('嘗試登入:', { full_name });
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name, password }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                console.log('服務器響應:', response.status, data);
+
+                if (response.ok) {
+                // 登入成功
+                showMessage('login-message', 'Login successful! Redirecting...', true);
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                setTimeout(() => {
+                    if (data.user.role === 'teacher') {
+                    window.location.href = '/index.html';
+                    } else {
+                    window.location.href = '/student-mainpage.html';
+                    }
+                }, 1500);
+
+                } else if (data.error === 'EMAIL_NOT_VERIFIED') {
+                // Email 未驗證
+                const email = data.user?.email || '';
+                const username = data.user?.username || full_name;
+      
+                showMessage('login-message', 
+                    `❌ Email 尚未驗證\n\n請檢查您的信箱 (${email}) 並點擊驗證連結。\n\n如未收到郵件，請點擊下方按鈕重新發送。`, 
+                    false
+                );
+      
+                // 顯示重新發送驗證信按鈕
+                const msgEl = document.getElementById('login-message');
+                const resendBtn = document.createElement('button');
+                resendBtn.textContent = '重新發送驗證信';
+                resendBtn.style.marginTop = '1rem';
+                resendBtn.style.width = '100%';
+                resendBtn.onclick = async function() {
+                    resendBtn.disabled = true;
+                    resendBtn.textContent = '發送中...';
+        
+                    try {
+                    const resendResp = await fetch(`${API_BASE_URL}/api/resend-verification`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ full_name })
+                    });
+          
+                    const resendData = await resendResp.json();
+          
+                    if (resendResp.ok) {
+                        showMessage('login-message', '✅ 驗證信已重新發送！請檢查您的信箱。', true);
+                    } else {
+                        showMessage('login-message', `❌ 發送失敗：${resendData.error || '未知錯誤'}`, false);
+                    }
+                    } catch (err) {
+                    showMessage('login-message', `❌ 網路錯誤：${err.message}`, false);
+                    } finally {
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = '重新發送驗證信';
+                    }
+                };
+      
+                // 清空現有按鈕，添加新按鈕
+                const existingBtn = msgEl.querySelector('button');
+                if (existingBtn) existingBtn.remove();
+                msgEl.appendChild(resendBtn);
+
+                } else {
+                showMessage('login-message', data.error || 'Login failed', false);
+                }
+            } catch (err) {
+                console.error('登入錯誤:', err);
+                showMessage('login-message', `網路錯誤: ${err.message}`, false);
+            } finally {
+                setButtonLoading('login-btn', false);
+            }
+        }
+
+        // Forgot Password Modal Functions
+        function openForgotPasswordModal() {
+            document.getElementById('forgot-password-modal').style.display = 'flex';
+            document.getElementById('reset-email').value = '';
+            document.getElementById('reset-message').style.display = 'none';
+        }
+        
+        function closeForgotPasswordModal() {
+            document.getElementById('forgot-password-modal').style.display = 'none';
+        }
+        
+        function setResetButtonLoading(loading) {
+            const button = document.getElementById('send-reset-btn');
+            button.disabled = loading;
+            if (loading) {
+                button.textContent = 'Sending...';
+            } else {
+                button.textContent = 'Send Reset Link';
+            }
+        }
+        
+        async function sendPasswordReset() {
+            const email = document.getElementById('reset-email').value.trim();
+            
+            if (!email) {
+                showMessage('reset-message', 'Please enter your email address', false);
+                return;
+            }
+            
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showMessage('reset-message', 'Please enter a valid email address', false);
+                return;
+            }
+            
+            setResetButtonLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('reset-message', 'Password reset link has been sent to your email', true);
+                    // Close modal after 3 seconds
+                    setTimeout(() => {
+                        closeForgotPasswordModal();
+                    }, 3000);
+                } else {
+                    showMessage('reset-message', data.error || 'Failed to send reset link', false);
+                }
+            } catch (err) {
+                console.error('Password reset error:', err);
+                showMessage('reset-message', `Network error: ${err.message}`, false);
+            } finally {
+                setResetButtonLoading(false);
+            }
+        }
+
+        // 初始化調試信息
+        updateDebugInfo();
+        setInterval(updateDebugInfo, 5000); // 每5秒更新一次
+
+        // Enter鍵提交表單
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter' && document.getElementById('login').classList.contains('active')) {
+                login();
+            }
+        });
+
+        // Add event listener to the Forgot Password button
+        document.getElementById('forgot-password-btn').addEventListener('click', openForgotPasswordModal);
+    </script>
+</body>
+</html>

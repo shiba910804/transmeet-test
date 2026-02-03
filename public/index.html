@@ -1,0 +1,2395 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>TransClass - 課程資料夾</title>
+  <style>
+    
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 60px 0 0 0;
+      background-color: #f5f5f5;
+    }
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #0a2463;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .logo {
+      font-weight: bold;
+      font-size: 20px;
+    }
+    .nav-button {
+      padding: 8px 15px;
+      background-color: #0a2463;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .nav-button:hover {
+      background-color: #2c7db3;
+    }
+    .profile-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+    .profile-container:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    .nav-button {
+  padding: 8px 15px;
+  background-color: transparent;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.nav-button:hover {
+  background-color: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.6);
+}
+    .profile-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+      background-color: #2c7db3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .profile-name {
+      font-size: 14px;
+    }
+
+    /* 🎯 優化後的 dropdown 樣式 */
+    .profile-dropdown {
+      position: absolute;
+      top: 50px;
+      right: 0;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 180px;
+      overflow: hidden;
+      z-index: 1001;
+      
+      /* 關鍵改善：不使用 display，改用 opacity + visibility + transform */
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      
+      /* 平滑過渡效果 - 消失時會有 0.6s 延遲 */
+      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+      transition-delay: 0.3s;
+      
+      /* 確保在隱藏狀態下無法點擊 */
+      pointer-events: none;
+    }
+
+    /* hover 時顯示 - 移除延遲，立即顯示 */
+    .profile-container:hover .profile-dropdown {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition-delay: 0s; /* 關鍵：立即顯示 */
+      pointer-events: auto; /* 恢復點擊功能 */
+    }
+
+    /* 🔥 關鍵：當滑鼠在 dropdown 本身時也保持顯示 */
+    .profile-dropdown:hover {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition-delay: 0s;
+      pointer-events: auto;
+    }
+
+    /* 增加緩衝區域，讓滑鼠移動更容易 */
+    .profile-container::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: -5px;
+      right: -5px;
+      height: 8px;
+      background: transparent;
+      z-index: 1000;
+    }
+
+    .profile-dropdown-header {
+      display: block;
+      padding: 12px 15px;
+      color: #333;
+      font-weight: bold;
+      border-bottom: 1px solid #eee;
+      background-color: #f8f9fa;
+      font-size: 14px;
+    }
+    .profile-dropdown a {
+      display: block;
+      padding: 12px 15px;
+      color: #333;
+      text-decoration: none;
+      font-size: 14px;
+      transition: background-color 0.2s ease;
+    }
+    .profile-dropdown a:hover {
+      background-color: #f0f0f0;
+    }
+    .profile-dropdown a:last-child {
+      color: #dc3545; /* 登出按鈕紅色 */
+    }
+    .profile-dropdown a:last-child:hover {
+      background-color: #f8d7da;
+    }
+
+    .container {
+      margin: 0 auto;
+      max-width: 1200px;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #333;
+      text-align: left;
+    }
+    .breadcrumb {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .breadcrumb-item {
+      cursor: pointer;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .breadcrumb-item:hover {
+      text-decoration: underline;
+    }
+    .breadcrumb-item.current {
+      color: #666;
+      cursor: default;
+    }
+    .breadcrumb-separator {
+      color: #999;
+      margin: 0 5px;
+    }
+    .card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .card-title {
+      font-size: 18px;
+      margin: 0;
+    }
+    .button {
+      background-color: #FF9966;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .button:hover {
+      background-color: #ff8c52;
+    }
+    .button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    /* 🔥 新增：加入課程按鈕樣式 */
+    .join-button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-left: 10px;
+    }
+    .join-button:hover {
+      background-color: #218838;
+    }
+    
+    .folders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .folder-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .folder-item:hover {
+      background-color: #f8f9fa;
+      border-color: #007bff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    /* 資料夾主要內容區域 */
+.folder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  padding-bottom: 40px
+}
+
+/* 按鈕區域 */
+.folder-actions {
+  position: absolute;
+  bottom: 15px;  /* 改為底部定位 */
+  right: 15px;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 開始上課按鈕 */
+.start-class-btn {
+  background-color: #FF9966;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.3s;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.folder-item:hover .start-class-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.start-class-btn:hover {
+  background-color: #ff8c52;
+  transform: scale(1.05);
+}
+
+/* 學生模式樣式 */
+.folder-item.student-mode .edit-btn,
+.folder-item.student-mode .delete-btn {
+  display: none;
+}
+
+.folder-item.student-mode .start-class-btn {
+  display: none;
+}
+    .folder-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    .folder-name {
+      font-weight: 500;
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+    .folder-count {
+      font-size: 12px;
+      color: #666;
+    }
+    .edit-btn {
+      position: absolute;
+      top: 8px;
+      right: 40px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 25px; /* 膠囊型邊角 */
+      padding: 6px 12px; /* 調整內邊距以容納文字 */
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px; /* 圖標和文字間距 */
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 10;
+      width: auto; /* 讓寬度自適應內容 */
+      height: auto; /* 讓高度自適應內容 */
+      min-width: 60px; /* 設置最小寬度 */
+      box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+    }
+    
+    .delete-btn {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 10;
+      top: 8px;
+      right: 8px;
+      background-color: #dc3545;
+    }
+    .folder-item:hover .edit-btn,
+    .folder-item:hover .delete-btn {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .edit-btn:hover {
+      background-color: #218838;
+      transform: scale(1.1);
+    }
+    .delete-btn:hover {
+      background-color: #c82333;
+      transform: scale(1.1);
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
+    }
+    .edit-btn svg, .delete-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: white;
+    }
+    .meeting-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .meeting-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+    .meeting-item:hover {
+      background-color: #f8f9fa;
+      border-color: #007bff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .meeting-item.in-progress {
+      border-color: #28a745;
+      background-color: #f8fff9;
+    }
+    .meeting-item.in-progress::before {
+      content: "";
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      background-color: #28a745;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    .meeting-item.ended {
+      border-color: #6c757d;
+      color: #6c757d;
+    }
+    
+    /* 🔥 新增：參與者課程樣式 */
+    .meeting-item.participant {
+      border-color: #17a2b8;
+      background-color: #f4f9fb;
+    }
+    
+    .meeting-role-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: bold;
+      color: white;
+    }
+    
+    .role-host {
+      background-color: #dc3545;
+    }
+    
+    .role-participant {
+      background-color: #17a2b8;
+    }
+    
+    .role-viewer {
+      background-color: #6c757d;
+    }
+    
+    .meeting-status {
+      font-size: 12px;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+    .status-ongoing {
+      color: #28a745;
+    }
+    .status-ended {
+      color: #6c757d;
+    }
+    .meeting-time {
+      font-size: 11px;
+      color: #999;
+      margin-top: 3px;
+    }
+    .loading {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+      font-style: italic;
+    }
+    .no-content {
+      text-align: center;
+      color: #666;
+      padding: 40px 20px;
+      font-style: italic;
+    }
+    
+    /* 模態對話框樣式 */
+    .modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+}
+
+.modal-content {
+  position: relative;
+  background-color: white;
+  margin: 8% auto;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+    .modal h3 {
+      margin-top: 0;
+      margin-bottom: 25px;
+      color: #333;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .form-section {
+  margin-bottom: 25px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-size: 16px;
+  background-color: #f8f9fb;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.share-section {
+  background-color: #f0f9ff;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #0ea5e9;
+  margin-bottom: 25px;
+}
+
+.share-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #0369a1;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.share-description {
+  color: #64748b;
+  font-size: 13px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.share-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+    .share-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background-color: white;
+      font-family: monospace;
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .copy-button {
+      padding: 10px 16px;
+      background-color: #0ea5e9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .copy-button:hover {
+      background-color: #0284c7;
+    }
+
+    .copy-button:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+    }
+    .modal input[type="text"], .modal input[type="url"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    
+    .modal-button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    
+    .modal-button.primary {
+      background-color: #007bff;
+      color: white;
+    }
+    
+    .modal-button.primary:hover {
+      background-color: #0056b3;
+    }
+    
+    .modal-button.secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    
+    .modal-button.secondary:hover {
+      background-color: #545b62;
+    }
+    
+    .modal-button.danger {
+      background-color: #dc3545;
+      color: white;
+    }
+    
+    .modal-button.danger:hover {
+      background-color: #c82333;
+    }
+    
+    /* 🔥 新增：加入課程模態框特殊樣式 */
+    .join-modal-content {
+      max-width: 500px;
+    }
+    
+    .join-info {
+      background-color: #e3f2fd;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      border-left: 4px solid #2196f3;
+    }
+    
+    .join-info h4 {
+      margin: 0 0 8px 0;
+      color: #1976d2;
+      font-size: 16px;
+    }
+    
+    .join-info p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #555;
+    }
+    .teacher-badge {
+      background-color: #28a745;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .url-input {
+      font-family: monospace;
+      background-color: #f8f9fa;
+    }
+
+    /* Token 狀態指示器 */
+    .token-status {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      display: none;
+      z-index: 1001;
+    }
+    
+    .token-status.warning {
+      background: #ffc107;
+      color: #212529;
+    }
+    
+    .token-status.error {
+      background: #dc3545;
+    }
+
+    /* 成功/錯誤訊息樣式 */
+    .success-message, .error-message {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 9999;
+      font-size: 14px;
+      font-weight: 500;
+      max-width: 350px;
+      word-wrap: break-word;
+      animation: slideInRight 0.3s ease;
+    }
+    
+    .success-message {
+      background: #10b981;
+      color: white;
+    }
+    
+    .error-message {
+      background: #ef4444;
+      color: white;
+    }
+
+    /* === Global Search === */
+.search-wrap {
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.search-input {
+  width: 260px; padding: 8px 10px; border:1px solid #ddd; border-radius:8px;
+}
+.search-clear {
+  padding: 8px 10px; border:1px solid #ddd; background:#fff; border-radius:8px; cursor:pointer;
+}
+.search-badge { font-size:12px; padding:2px 6px; border-radius:6px; background:#eef; color:#334; margin-left:4px; }
+.search-result { border:1px solid #eee; border-radius:10px; padding:12px; background:#fff; cursor:pointer; }
+.search-result:hover { background:#fafafa; }
+.result-type { font-size:12px; opacity:0.7; margin-right:6px; }
+.result-title { font-weight:600; margin-bottom:4px; }
+.result-meta { font-size:12px; color:#666; }
+.result-snippet { margin-top:6px; font-size:13px; color:#333; }
+
+    
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Token 狀態指示器 -->
+  <div id="token-status" class="token-status"></div>
+
+  <div class="navbar">
+    <div class="nav-left">
+      <a href="#" class="nav-button" id="back-to-main-btn">←</a>
+      <div class="logo">TransClass</div>
+      <div class="teacher-badge">👨‍🏫 老師 Teacher</div>   
+    </div>
+    <div class="profile-container">
+      <div class="profile-img" id="profile-avatar">U</div>
+      <div class="profile-name" id="profile-name">使用者 User</div>
+      <div class="profile-dropdown">
+        <div class="profile-dropdown-header" id="profile-dropdown-header">使用者名稱 User Name</div>
+        <a href="profile.html">個人檔案 Profile</a>
+        <a href="settings.html">設定 Settings</a>
+        <a href="#" id="logout-link">登出 Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1 id="main-title">課程資料夾 Course folders</h1>
+    
+    <!-- 導覽路徑 -->
+    <div class="breadcrumb" id="breadcrumb">
+      <span class="breadcrumb-item" onclick="navigateToRoot()">🏠 主目錄 Home</span>
+      
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+  <h2 class="card-title" id="content-title">資料夾 folders</h2>
+  <div class="search-wrap">
+    <input id="global-search-input" class="search-input" type="search" placeholder="搜尋：課程標題或內容... Search by title or content..." />
+    <!-- <button id="global-search-clear" class="search-clear" title="清除搜尋">清除</button> -->
+    <button class="button" id="create-folder-btn">新增課程資料夾 add new course folder</button>
+    <button class="button" id="create-meeting-btn" style="display: none;">開始上課 start class</button>
+  </div>
+</div>
+
+      
+      <div id="content-container">
+        <div class="loading">載入資料中 loading... </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增課程資料夾模態對話框 -->
+<div id="create-folder-modal" class="modal">
+  <div class="modal-content">
+    <h3>新增課程資料夾</h3>
+    <div class="form-section">
+      <label class="form-label">請為您的資料夾設定一個名稱</label>
+      <input type="text" id="folder-name" class="form-input" placeholder="輸入資料夾名稱" maxlength="50">
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-button secondary" onclick="hideCreateFolderModal()">取消 cancel</button>
+      <button class="modal-button primary" onclick="createFolder()">確定 confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- 編輯資料夾模態對話框 -->
+<div id="edit-folder-modal" class="modal">
+  <div class="modal-content">
+    <h3>編輯資料夾名稱</h3>
+    <div class="form-section">
+      <label class="form-label">請輸入新的資料夾名稱</label>
+      <input type="text" id="edit-folder-name" class="form-input" placeholder="新資料夾名稱" maxlength="50">
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-button secondary" onclick="hideEditFolderModal()">取消 cancel</button>
+      <button class="modal-button primary" onclick="updateFolder()">儲存 save</button>
+    </div>
+  </div>
+</div>
+
+  <!-- 統一的開始課程模態對話框 -->
+<div id="unified-start-class-modal" class="modal">
+  <div class="modal-content">
+    <h3 id="modal-title">開始上課 start class</h3>
+    
+    <!-- 課程名稱設定區域 -->
+    <div class="form-section">
+      <label class="form-label">請為您的課程設定一個名稱 Please enter a name for your class</label>
+      <input 
+        type="text" 
+        id="class-title-input" 
+        class="form-input"
+        placeholder="課程名稱"
+        maxlength="100"
+      >
+    </div>
+
+    <!-- 分享連結區域 -->
+    <div class="share-section" id="share-section" style="display: none;">
+      <label class="share-label">分享連結 Share Link</label>
+      <div class="share-description">
+        把連結貼給學生，學生可直接點擊參加本次課程。
+        <br>
+        Share this link with your students so they can join the class directly.
+      </div>
+      <div class="share-input-group">
+        <input 
+          type="text" 
+          id="share-link-input" 
+          class="share-input"
+          value="課程創建後將自動生成分享連結..."
+          readonly
+        >
+        <button class="copy-button" id="copy-share-btn" onclick="copyShareLink()" disabled>複製 Copy</button>
+      </div>
+    </div>
+
+    <!-- 按鈕區域 -->
+    <div class="modal-buttons">
+      <button class="modal-button secondary" onclick="hideUnifiedModal()">
+        取消 cancel
+      </button>
+      <button class="modal-button primary" id="main-action-btn" onclick="createClassAndGenerateLink()">
+        開始上課 start class
+      </button>
+    </div>
+  </div>
+</div>
+
+  <!-- 刪除確認對話框 -->
+  <div id="delete-modal" class="modal">
+    <div class="modal-content">
+      <h3>⚠️ 確認刪除 delete confirmation</h3>
+      <p id="delete-message">確定要刪除嗎？ Are you sure you want to delete this?</p>
+      <div class="modal-buttons">
+        <button class="modal-button secondary" onclick="hideDeleteModal()">取消 cancel</button>
+        <button class="modal-button danger" onclick="confirmDelete()">確定刪除 confirm delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 新增這些函數到現有的 script 區域
+let currentMeetingId = null;
+let createdMeetingData = null; // 存儲已創建的會議數據
+
+function showUnifiedModal(folderId = null, defaultTitle = null) {
+  // 清理之前的狀態
+  window.currentCreatedMeetingId = null;
+  createdMeetingData = null;
+  
+  if (folderId) {
+    window.tempFolderId = folderId;
+  }
+  
+  let title = defaultTitle;
+  if (!title) {
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    title = `test${dateStr}`;
+  }
+  
+  document.getElementById('class-title-input').value = title;
+  document.getElementById('unified-start-class-modal').style.display = 'block';
+  
+  // 重置界面狀態
+  resetModalToInitialState();
+}
+
+// === 全域搜尋（老師頁） ===
+let lastSearchAbort = null;
+function debounce(fn, wait=300) {
+  let t = null;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+
+async function runGlobalSearch(q) {
+  const container = document.getElementById('content-container');
+  if (!q || !q.trim()) {
+    // 還原原本畫面
+    if (currentPath.length === 0) {
+      displayFolders();
+    } else {
+      displayMeetingsInFolder(currentPath[currentPath.length - 1]);
+    }
+    return;
+  }
+
+  // 取消上一次請求（避免競態）
+  if (lastSearchAbort) lastSearchAbort.abort();
+  lastSearchAbort = new AbortController();
+
+  container.innerHTML = '<div class="loading">搜尋中...</div>';
+  try {
+    const url = `${API_BASE_URL}/api/search?q=${encodeURIComponent(q.trim())}&limit=50`;
+    const resp = await apiClient.makeRequest(url, { method:'GET', signal: lastSearchAbort.signal });
+    if (!resp) return;
+    if (!resp.ok) throw new Error('搜尋失敗');
+
+    const data = await resp.json();
+    renderSearchResults(data);
+  } catch(e) {
+    console.error('搜尋錯誤', e);
+    container.innerHTML = '<div class="no-content">搜尋失敗，請稍後再試</div>';
+  }
+}
+
+function renderSearchResults(data) {
+  const container = document.getElementById('content-container');
+  const { query, counts, results } = data || {};
+  const total = (results || []).length;
+
+  if (!total) {
+    container.innerHTML = `<div class="no-content">找不到符合「${query}」的結果</div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="margin-bottom:10px;">
+      <span>「${query}」共 ${total} 筆</span>
+      <span class="search-badge">會議標題 ${counts.meetings}</span>
+      <span class="search-badge">內容 ${counts.messages}</span>
+      <span class="search-badge">資料夾 ${counts.folders}</span>
+    </div>
+    <div style="display:grid; gap:10px;">
+      ${results.map(r => {
+        const typeLabel = r.type === 'message' ? '內容' : (r.type === 'meeting' ? '會議' : '資料夾');
+        const ts = r.ts ? new Date(r.ts).toLocaleString() : '';
+        const snippet = r.snippet ? `<div class="result-snippet">${r.snippet}...</div>` : '';
+        return `
+          <div class="search-result" onclick="handleSearchOpen(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+            <div class="result-title">
+              <span class="result-type">[${typeLabel}]</span>${r.title || r.folderName || '(無標題)'}
+            </div>
+            <div class="result-meta">📁 ${r.folderName || '課程'} ${ts ? '｜🕒 ' + ts : ''}</div>
+            ${snippet}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function handleSearchOpen(item) {
+  if (item.type === 'folder') {
+    // 直接切到該資料夾
+    // 老師頁用 currentPath 來顯示資料夾層
+    currentPath = [item.folderId];
+    displayMeetingsInFolder(item.folderId);
+    return;
+  }
+  // meeting/message 都開課程頁
+  window.location.href = `meeting.html?id=${item.meetingId}`;
+}
+
+// 綁定輸入框事件（加入到原本 bindEventListeners 之後呼叫）
+function bindGlobalSearchEvents() {
+  const input = document.getElementById('global-search-input');
+  const clearBtn = document.getElementById('global-search-clear');
+  if (!input) return;
+  const debounced = debounce(() => runGlobalSearch(input.value), 300);
+  input.addEventListener('input', debounced);
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    runGlobalSearch('');
+  });
+}
+
+// 在你的初始化完成後呼叫
+// 例如在 loadData() 與 bindEventListeners() 之後，加一行：
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(bindGlobalSearchEvents, 0);
+});
+
+
+
+function resetModalToInitialState() {
+  const modalTitle = document.getElementById('modal-title');
+  const shareSection = document.getElementById('share-section');
+  const shareInput = document.getElementById('share-link-input');
+  const copyBtn = document.getElementById('copy-share-btn');
+  const actionBtn = document.getElementById('main-action-btn');
+  
+  // 重置標題
+  modalTitle.textContent = '開始上課 start class';
+  
+  // 隱藏分享區域
+  shareSection.style.display = 'none';
+  
+  // 重置分享連結區域
+  shareInput.value = '課程創建後將自動生成分享連結...';
+  shareInput.style.backgroundColor = '#f8f9fb';
+  shareInput.style.borderColor = '#e1e5e9';
+  copyBtn.disabled = true;
+  
+  // 重置按鈕狀態
+  actionBtn.textContent = '開始上課 start class';
+  actionBtn.disabled = false;
+  actionBtn.onclick = createClassAndGenerateLink;
+}
+
+function hideUnifiedModal() {
+  document.getElementById('unified-start-class-modal').style.display = 'none';
+  
+  // 清理狀態
+  window.currentCreatedMeetingId = null;
+  window.tempFolderId = null;
+  createdMeetingData = null;
+}
+
+async function createClassAndGenerateLink() {
+  const title = document.getElementById('class-title-input').value.trim();
+  
+  if (!title) {
+    alert('請輸入課程名稱');
+    return;
+  }
+
+  const targetFolderId = window.tempFolderId || currentPath[currentPath.length - 1];
+  if (!targetFolderId) {
+    alert('無效的資料夾');
+    return;
+  }
+
+  const actionBtn = document.getElementById('main-action-btn');
+  const originalText = actionBtn.textContent;
+  
+  // 防止重複點擊
+  if (actionBtn.disabled) {
+    return;
+  }
+  
+  actionBtn.textContent = '創建中...';
+  actionBtn.disabled = true;
+
+  try {
+    const now = new Date();
+    console.log('🚀 開始創建課程:', title, '資料夾ID:', targetFolderId);
+    
+    const response = await apiClient.makeRequest(`${API_BASE_URL}/add-meeting`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: title,
+        startTime: now.toISOString(),
+        endTime: null,
+        folderId: targetFolderId
+      })
+    });
+
+    if (!response) return;
+    
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || '創建課程失敗');
+
+    console.log('✅ 課程創建成功:', data);
+    
+    // 保存會議數據
+    createdMeetingData = data;
+    window.currentCreatedMeetingId = data.meetingId;
+
+    // 更新清單/UI
+    if (window.tempFolderId) {
+      currentPath = [window.tempFolderId];
+      updateUI();
+      updateBreadcrumb();
+      displayMeetingsInFolder(window.tempFolderId);
+    } else {
+      await loadMeetings();
+      displayCurrentPath();
+    }
+    updateTokenStatus();
+
+    // 立即生成分享連結
+    console.log('🔗 開始生成分享連結...');
+    await generateShareLink(data.meetingId);
+    
+    // 切換到分享模式
+    switchToShareMode();
+
+    showSuccessMessage('課程創建成功！分享連結已生成');
+
+  } catch (error) {
+    console.error('❌ 創建課程錯誤:', error);
+    showErrorMessage('創建課程失敗: ' + error.message);
+    
+    // 錯誤時恢復按鈕狀態
+    actionBtn.textContent = originalText;
+    actionBtn.disabled = false;
+    actionBtn.onclick = createClassAndGenerateLink;
+  }
+}
+
+function switchToShareMode() {
+  const modalTitle = document.getElementById('modal-title');
+  const shareSection = document.getElementById('share-section');
+  const actionBtn = document.getElementById('main-action-btn');
+  
+  // 更改標題
+  modalTitle.textContent = '課程已創建 Class Created';
+  
+  // 顯示分享區域
+  shareSection.style.display = 'block';
+  
+  // 更改按鈕為"進入課程"
+  actionBtn.textContent = '進入課程 enter class';
+  actionBtn.disabled = false;
+  actionBtn.onclick = function(e) {
+    e.preventDefault();
+    console.log('🎯 進入課程:', window.currentCreatedMeetingId);
+    window.location.href = `meeting.html?id=${window.currentCreatedMeetingId}`;
+  };
+}
+
+async function generateShareLink(meetingId) {
+  const shareInput = document.getElementById('share-link-input');
+  const copyBtn = document.getElementById('copy-share-btn');
+
+  try {
+    console.log('🔗 正在為會議生成分享連結:', meetingId);
+    
+    const resp = await apiClient.makeRequest(`${API_BASE_URL}/api/meetings/${meetingId}/share`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ permission: 'viewer', expiresIn: 24 })
+    });
+
+    if (!resp || !resp.ok) {
+      let msg = '生成分享連結失敗';
+      try { 
+        const e = await resp.json(); 
+        msg = e.error || msg; 
+      } catch {}
+      throw new Error(msg);
+    }
+
+    const data = await resp.json();
+    console.log('✅ 分享連結生成成功:', data.shareUrl);
+    
+    shareInput.value = data.shareUrl || '';
+    copyBtn.disabled = !data.shareUrl;
+    
+    // 如果成功生成連結，改變輸入框樣式表示成功
+    if (data.shareUrl) {
+      shareInput.style.backgroundColor = '#f0f9ff';
+      shareInput.style.borderColor = '#0ea5e9';
+    }
+    
+  } catch (error) {
+    console.error('❌ 生成分享連結失敗:', error);
+    shareInput.value = '生成分享連結失敗，仍可直接進入課程';
+    copyBtn.disabled = true;
+    
+    // 錯誤狀態的樣式
+    shareInput.style.backgroundColor = '#fef2f2';
+    shareInput.style.borderColor = '#ef4444';
+  }
+}
+
+function copyShareLink() {
+  const shareInput = document.getElementById('share-link-input');
+  shareInput.select();
+  shareInput.setSelectionRange(0, 99999);
+  
+  try {
+    document.execCommand('copy');
+    const copyBtn = document.getElementById('copy-share-btn');
+    const originalText = copyBtn.textContent;
+    copyBtn.textContent = '已複製 Copied';
+    setTimeout(() => {
+      copyBtn.textContent = originalText;
+    }, 2000);
+  } catch (err) {
+    console.error('複製失敗:', err);
+    alert('複製失敗，請手動複製連結');
+  }
+}
+
+let lastCreatedMeetingId = null;
+
+  function showPreJoinShareModal(meetingId) {
+    lastCreatedMeetingId = meetingId;
+    const modal = document.getElementById('pre-join-share-modal');
+    const input = document.getElementById('pre-share-link');
+    const copyBtn = document.getElementById('pre-copy-btn');
+
+    input.value = '正在生成分享連結...';
+    copyBtn.disabled = true;
+    modal.style.display = 'block';
+
+    // 生成分享連結（固定 viewer、24 小時）
+    generatePreShareLink(meetingId).catch(err => {
+      console.error('❌ 生成分享連結失敗:', err);
+      input.value = '生成分享連結失敗，仍可直接進入課程';
+      copyBtn.disabled = true;
+    });
+
+    // 點擊遮罩可關閉
+    window.addEventListener('click', preShareBackdropClose);
+  }
+
+  function hidePreShareModal() {
+    const modal = document.getElementById('pre-join-share-modal');
+    modal.style.display = 'none';
+    window.removeEventListener('click', preShareBackdropClose);
+  }
+
+  function preShareBackdropClose(e) {
+    const modal = document.getElementById('pre-join-share-modal');
+    if (e.target === modal) hidePreShareModal();
+  }
+
+  async function generatePreShareLink(meetingId) {
+    // 後端已提供：POST /api/meetings/:id/share 會回傳 shareUrl
+    // 這支 API 的實作在 server.js（建立 share_token 並組成 URL），回傳的 shareUrl 形如 /meeting.html?share=...（同檔可見組裝）
+    const resp = await apiClient.makeRequest(`${API_BASE_URL}/api/meetings/${meetingId}/share`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ permission: 'viewer', expiresIn: 24 })
+    });
+
+    if (!resp || !resp.ok) {
+      let msg = '生成分享連結失敗';
+      try { const e = await resp.json(); msg = e.error || msg; } catch {}
+      throw new Error(msg);
+    }
+
+    const data = await resp.json();
+    const input = document.getElementById('pre-share-link');
+    const copyBtn = document.getElementById('pre-copy-btn');
+
+    input.value = data.shareUrl || '';
+    copyBtn.disabled = !data.shareUrl;
+  }
+
+  function copyPreShareLink() {
+    const input = document.getElementById('pre-share-link');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    // 也可改用 navigator.clipboard.writeText(input.value)
+    alert('已複製分享連結');
+  }
+
+  function enterMeeting() {
+    if (!lastCreatedMeetingId) {
+      alert('找不到課程 ID，將返回主頁');
+      hidePreShareModal();
+      return;
+    }
+    window.location.href = `meeting.html?id=${lastCreatedMeetingId}`;
+  }
+
+  function setupBackButton() {
+  const backButton = document.getElementById('back-to-main-btn');
+  if (!backButton) return;
+
+  try {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      
+      if (user.role === 'student') {
+        backButton.href = 'student-mainpage.html';
+      } else if (user.role === 'teacher') {
+        backButton.href = 'index.html';
+      } else {
+        backButton.href = 'auth.html';
+      }
+    } else {
+      backButton.href = 'auth.html';
+    }
+  } catch (error) {
+    console.error('設置返回按鈕失敗:', error);
+    backButton.href = 'auth.html';
+  }
+}
+
+// 在現有的認證檢查函數中調用
+document.addEventListener('DOMContentLoaded', function() {
+  setupBackButton();
+});
+    // ===================== 快速修復版 JWT 處理 =====================
+    // Get the current host and port
+    const API_BASE_URL = window.location.origin;
+    console.log('🌐 API Base URL:', API_BASE_URL);
+    console.log('📍 Current URL:', window.location.href);
+
+    // 簡化的 Token 管理
+    class SimpleTokenManager {
+      getToken() {
+        return localStorage.getItem('authToken');
+      }
+      
+      setToken(token) {
+        localStorage.setItem('authToken', token);
+      }
+      
+      clearAuth() {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+      }
+      
+      // 檢查 token 是否即將過期（提前 30 分鐘）
+      isTokenExpiringSoon() {
+        const token = this.getToken();
+        // 現在主要靠 cookie 驗證；沒有 localStorage token 時，不要視為過期
+        if (!token) return false;
+
+        // 不是標準 JWT（沒有兩個點），也不要硬解析
+        if (typeof token !== 'string' || token.split('.').length !== 3) return false;
+
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          const expirationTime = (payload.exp || 0) * 1000;
+          const currentTime = Date.now();
+          const thirtyMinutes = 30 * 60 * 1000;
+          return (expirationTime - currentTime) < thirtyMinutes;
+        } catch (error) {
+          console.warn('略過 token 解析錯誤（改用 cookie 驗證）：', error);
+          return false;
+        }
+      }
+
+      
+      // 簡單的重新登入處理
+      async handleTokenExpired() {
+        console.log('Token 已過期，需要重新登入');
+        this.clearAuth();
+        
+        const shouldRelogin = confirm('登入已過期，是否重新登入？');
+        if (shouldRelogin) {
+          window.location.href = 'auth.html';
+        }
+      }
+    }
+
+    // 簡化的 API 客戶端
+    class SimpleAPIClient {
+      constructor() {
+        this.tokenManager = new SimpleTokenManager();
+      }
+      
+      async makeRequest(url, options = {}) {
+  // 不要因為 token 快過期就強制登出；我們會用 401 來判斷
+  // if (this.tokenManager.isTokenExpiringSoon()) { ... }  // ← 這段整段移除
+
+  const token = this.tokenManager.getToken();
+
+  // 合併 headers
+  options.headers = {
+    ...(options.headers || {}),
+    ...(token && token.split('.').length === 3 ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+
+  // 一律帶 cookie
+  options.credentials = 'include';
+
+  try {
+    const response = await fetch(url, options);
+
+    if (response.status === 401) {
+      // 真正未授權才清理 & 導回登入
+      console.log('收到 401，可能未登入或 cookie 失效');
+      this.tokenManager.clearAuth();
+      window.location.href = 'auth.html';
+      return null;
+    }
+
+    return response;
+  } catch (error) {
+    console.error('API 請求失敗:', error);
+    throw error;
+  }
+}
+
+    }
+
+    // 創建實例
+    const tokenManager = new SimpleTokenManager();
+    const apiClient = new SimpleAPIClient();
+
+    // ===================== 全域變數 =====================
+    let currentUser = null;
+    let authToken = null;
+    let currentPath = [];
+    let folders = [];
+    let meetings = [];
+    let editingFolderId = null;
+    let deleteTarget = null;
+
+    // ===================== Token 狀態顯示 =====================
+    function updateTokenStatus() {
+      const statusEl = document.getElementById('token-status');
+      const token = tokenManager.getToken();
+      
+      if (!token) {
+        statusEl.textContent = '🔒 未登入';
+        statusEl.className = 'token-status error';
+        statusEl.style.display = 'block';
+        return;
+      }
+      
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const expirationTime = payload.exp * 1000;
+        const currentTime = Date.now();
+        const timeRemaining = expirationTime - currentTime;
+        const minutesRemaining = Math.floor(timeRemaining / (1000 * 60));
+        
+        
+        
+        
+        
+      } catch (error) {
+        statusEl.textContent = '🔒 Token 錯誤';
+        statusEl.className = 'token-status error';
+        statusEl.style.display = 'block';
+      }
+    }
+
+    // ===================== 頁面初始化 =====================
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('頁面載入完成，開始初始化...');
+      
+      // 檢查用戶登入狀態
+      if (!checkAuthStatus()) {
+        return;
+      }
+
+      // 檢查語言偏好
+      const userLanguage = localStorage.getItem('userLanguage') || 'zh-Hant';
+      document.documentElement.lang = userLanguage;
+      
+      // 更新 Token 狀態顯示
+      updateTokenStatus();
+      
+      // 載入資料
+      await loadData();
+      
+      // 綁定事件監聽器
+      bindEventListeners();
+      
+      // 每分鐘檢查一次 token 狀態
+      setInterval(() => {
+        if (tokenManager.isTokenExpiringSoon()) {
+          console.warn('⚠️ Token 即將過期');
+          updateTokenStatus();
+        }
+      }, 60000);
+    });
+
+    // ===================== 認證狀態檢查 =====================
+    async function checkAuthStatus() {
+  const localToken = localStorage.getItem('authToken');
+
+  // 1) 優先用 localStorage 的 token 做快檢（可選）
+  if (localToken) {
+    try {
+      const [, payloadB64] = localToken.split('.');
+      const payloadStr = atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'));
+      const payload = JSON.parse(payloadStr);
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp - now < 60) {
+        console.warn('Token 即將過期或已過期');
+      }
+      // 有 token 先放行，但為保險還是打一個 session 檢查
+    } catch (e) {
+      console.warn('解析 token 失敗:', e);
+    }
+  }
+
+  // 2) 無論 localStorage 有沒有，最後以 /api/session 為準（支援 cookie）
+  const resp = await fetch('/api/session', { credentials: 'include' });
+  if (!resp.ok) {
+    // 後端不認得 -> 登出處理
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    window.location.href = '/auth.html';
+    return;
+  }
+  const data = await resp.json();
+  // 可在這裡把 user 放進全域狀態
+  window.currentUser = data.user;
+   updateUserProfile();
+}
+
+
+    // ===================== 用戶資料顯示 =====================
+    function updateUserProfile() {
+  // 改成使用 window.currentUser
+  if (!window.currentUser) return;
+  
+  const profileName = document.getElementById('profile-name');
+  const profileDropdownHeader = document.getElementById('profile-dropdown-header');
+  const profileAvatar = document.getElementById('profile-avatar');
+  
+  // 使用 window.currentUser
+  const displayName = window.currentUser.full_name || window.currentUser.username;
+  
+  if (profileName) profileName.textContent = displayName;
+  if (profileDropdownHeader) profileDropdownHeader.textContent = displayName;
+  if (profileAvatar) {
+    profileAvatar.textContent = displayName.charAt(0).toUpperCase();
+  }
+}
+    // ===================== 事件監聽器 =====================
+    function bindEventListeners() {
+      const logoutLink = document.getElementById('logout-link');
+      const createFolderBtn = document.getElementById('create-folder-btn');
+      const createMeetingBtn = document.getElementById('create-meeting-btn');
+      
+      if (logoutLink) logoutLink.addEventListener('click', handleLogout);
+      if (createFolderBtn) createFolderBtn.addEventListener('click', showCreateFolderModal);
+      if (createMeetingBtn) createMeetingBtn.addEventListener('click', showCreateMeetingModal);
+      
+      // 模態窗口外部點擊關閉
+      window.addEventListener('click', (event) => {
+        const modal = document.getElementById('unified-start-class-modal');
+          if (event.target === modal) {
+            hideUnifiedModal();
+        }
+      });
+    }
+
+    // ===================== 資料載入 =====================
+    async function loadData() {
+      console.log('開始載入資料...');
+      
+      try {
+        // 先載入資料夾，然後載入課程
+        await loadFolders();
+        await loadMeetings();
+        
+        displayCurrentPath();
+      } catch (error) {
+        console.error('載入資料錯誤:', error);
+        showError('無法載入資料: ' + error.message);
+      }
+    }
+    async function loadFolders() {
+      try {
+        const response = await apiClient.makeRequest(`${API_BASE_URL}/api/folders`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response) return;
+
+        if (!response.ok) {
+          throw new Error('獲取資料夾失敗');
+        }
+
+        const data = await response.json();
+        folders = data.folders || [];
+        
+        console.log('資料夾載入成功:', folders.length);
+        
+      } catch (error) {
+        console.error('載入資料夾錯誤:', error);
+        folders = [];
+      }
+    }
+
+    async function loadMeetings() {
+      try {
+        const response = await apiClient.makeRequest(`${API_BASE_URL}/api/meetings`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response) return;
+
+        if (!response.ok) {
+          throw new Error('獲取課程記錄失敗');
+        }
+
+        const data = await response.json();
+        meetings = data.meetings || [];
+        
+        console.log('課程記錄載入成功:', meetings.length, meetings);
+        
+        // For students, ensure meetings are properly organized by folder
+        if (currentUser && currentUser.role === 'student') {
+          await organizeStudentMeetings();
+        }
+        
+      } catch (error) {
+        console.error('載入課程記錄錯誤:', error);
+        meetings = [];
+      }
+    }
+
+    function getMeetingFolderName(meeting) {
+      return meeting.folderName || meeting.folder_name || meeting.folder || meeting.teacher_folder_name || null;
+    }
+    function getMeetingFolderId(meeting) {
+      return meeting.folderId || meeting.folder_id || null;
+    }
+
+
+    // 為學生組織課程到對應的資料夾
+    async function organizeStudentMeetings() {
+      console.log('組織學生的課程到資料夾...');
+
+      for (const meeting of meetings) {
+        let folderId = getMeetingFolderId(meeting);
+        let folderName = getMeetingFolderName(meeting);
+
+        // 先嘗試用已有的 folder_id 對上前端的 folders 陣列，補 folderName
+        if (!folderName && folderId) {
+          const match = folders.find(f => f.id === folderId);
+          if (match) folderName = match.name;
+        }
+
+        // 如果還是沒有 folderName，就跳過 ensure（避免送空字串）
+        if (!folderName) {
+          console.warn('⚠️ 會議缺少 folderName，無法 ensure，meeting.id=', meeting.id, meeting);
+          continue;
+        }
+
+        // 檢查學生本地是否已有同名資料夾（folders 內是學生自己的資料夾）
+        let studentFolder = folders.find(f => f.name === folderName);
+
+        // 沒有的話就打 /api/folders/ensure 建立
+        if (!studentFolder) {
+          try {
+            const resp = await apiClient.makeRequest(`${API_BASE_URL}/api/folders/ensure`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: folderName, teacherFolderId: null })
+            });
+
+            if (resp && resp.ok) {
+              const result = await resp.json();
+              const ensuredId = result.folderId;
+
+              // 重新拉一次資料夾，確保 folders 被更新
+              await loadFolders();
+
+              // 更新本地變數
+              studentFolder = folders.find(f => f.id === ensuredId) || folders.find(f => f.name === folderName);
+            } else {
+              console.error('❌ ensure 失敗：', resp && (await resp.text()));
+            }
+          } catch (e) {
+            console.error('❌ 呼叫 /api/folders/ensure 例外：', e);
+          }
+        }
+
+        // 把 meeting 的 folderId 統一補上（後續顯示用）
+        if (studentFolder) {
+          meeting.folderId = studentFolder.id;
+          meeting.folder_id = studentFolder.id; // 同步 snake/camel，避免其他地方用到
+          meeting.folderName = studentFolder.name;
+          meeting.folder_name = studentFolder.name;
+        }
+      }
+    }
+
+
+
+    // ===================== 顯示邏輯 =====================
+    function displayCurrentPath() {
+      updateBreadcrumb();
+      updateUI();
+      
+      if (currentPath.length === 0) {
+        displayFolders();
+      } else {
+        displayMeetingsInFolder(currentPath[currentPath.length - 1]);
+      }
+      
+    }
+
+    function updateBreadcrumb() {
+      const breadcrumb = document.getElementById('breadcrumb');
+      let html = '<span class="breadcrumb-item" onclick="navigateToRoot()">🏠 主目錄 Home</span>';
+      
+      for (let i = 0; i < currentPath.length; i++) {
+        const folderId = currentPath[i];
+        const folder = folders.find(f => f.id === folderId);
+        const folderName = folder ? folder.name : `資料夾 ${folderId}`;
+        
+        html += '<span class="breadcrumb-separator">></span>';
+        
+        if (i === currentPath.length - 1) {
+          html += `<span class="breadcrumb-item current">📁 ${folderName}</span>`;
+        } else {
+          html += `<span class="breadcrumb-item" onclick="navigateToFolder([${currentPath.slice(0, i + 1).join(',')}])">📁 ${folderName}</span>`;
+        }
+      }
+      
+      breadcrumb.innerHTML = html;
+    }
+
+    function updateUI() {
+      const mainTitle = document.getElementById('main-title');
+      const contentTitle = document.getElementById('content-title');
+      const createFolderBtn = document.getElementById('create-folder-btn');
+      const createMeetingBtn = document.getElementById('create-meeting-btn');
+      
+      // Allow students to create folders too
+      if (currentPath.length === 0) {
+        if (currentUser && currentUser.role === 'student') {
+          mainTitle.textContent = '我的課程資料夾 My course folders';
+          contentTitle.textContent = '資料夾 Folders';
+        } else {
+          mainTitle.textContent = '課程資料夾 Course folders';
+          contentTitle.textContent = '資料夾 Folders';
+        }
+        // Show folder creation for both teachers and students
+        createFolderBtn.style.display = 'inline-block';
+        createMeetingBtn.style.display = 'none';
+      } else {
+        const currentFolder = folders.find(f => f.id === currentPath[currentPath.length - 1]);
+        const folderName = currentFolder ? currentFolder.name : '未知資料夾';
+        mainTitle.textContent = `${folderName} - 課程管理`;
+        contentTitle.textContent = '課程記錄';
+        createFolderBtn.style.display = 'none';
+        // Only show create meeting button for teachers
+        createMeetingBtn.style.display = currentUser && currentUser.role === 'student' ? 'none' : 'inline-block';
+      }
+    }
+
+
+    function displayFolders() {
+  const container = document.getElementById('content-container');
+  
+  if (folders.length === 0) {
+    container.innerHTML = '<div class="no-content">尚無資料夾，點擊「新增課程資料夾」開始建立</div>';
+    return;
+  }
+
+  const foldersHtml = folders.map(folder => {
+    let meetingCount = meetings.filter(m => getMeetingFolderId(m) === folder.id).length;
+
+    const isStudent = currentUser && currentUser.role === 'student';
+    const studentClass = isStudent ? ' student-mode' : '';
+    
+    // 編輯和刪除按鈕（只有教師可見）
+    const editDeleteButtons = isStudent ? '' : `
+      <button class="edit-btn" onclick="showEditFolderModal(${folder.id}); event.stopPropagation();" title="編輯資料夾">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="white">
+          <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>
+        </svg>
+        Rename Course
+      </button>
+      <button class="delete-btn" onclick="showDeleteModal('folder', ${folder.id}, '${folder.name}'); event.stopPropagation();" title="刪除資料夾">
+        <svg viewBox="0 0 24 24">
+          <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+        </svg>
+      </button>
+    `;
+
+    // 只顯示開始上課按鈕（僅教師）
+    const actionButtons = isStudent ? '' : `
+      <div class="folder-actions">
+        <button class="start-class-btn" onclick="startClassInFolder(${folder.id}); event.stopPropagation();" title="在此資料夾開始上課">
+          開始上課 start class
+        </button>
+      </div>
+    `;
+    
+    return `
+      <div class="folder-item${studentClass}" onclick="enterFolder(${folder.id})">
+        ${editDeleteButtons}
+        <div class="folder-content">
+          <div class="folder-icon">📁</div>
+          <div class="folder-name">${folder.name}</div>
+          <div class="folder-count">${meetingCount} 個課程</div>
+        </div>
+        ${actionButtons}
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `<div class="folders-grid">${foldersHtml}</div>`;
+}
+    function startClassInFolder(folderId) {
+      const currentFolder = folders.find(f => f.id === folderId);
+      const folderName = currentFolder ? currentFolder.name : '未知資料夾';
+  
+      const folderMeetings = meetings.filter(m => getMeetingFolderId(m) === folderId);
+      const nextIndex = folderMeetings.length + 1;
+  
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  
+      const defaultTitle = `${folderName} - ${nextIndex} ${dateStr} ${timeStr}`;
+
+      showUnifiedModal(folderId, defaultTitle);
+    }
+    
+    function displayMeetingsInFolder(folderId) {
+      const container = document.getElementById('content-container');
+      const folderMeetings = meetings.filter(m => getMeetingFolderId(m) === folderId);
+      
+      if (folderMeetings.length === 0) {
+        container.innerHTML = '<div class="no-content">此資料夾暫無課程記錄，點擊「開始上課」開始建立</div>';
+        return;
+      }
+
+      const meetingsHtml = folderMeetings.map(meeting => {
+        const startTime = new Date(meeting.start_time);
+        const timeStr = startTime.toLocaleDateString('zh-TW', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        
+        const status = meeting.end_time ? '已結束' : '進行中';
+        const statusClass = meeting.end_time ? 'ended' : 'in-progress';
+        
+        // 新增：根據用戶角色顯示不同樣式
+        let roleClass = '';
+        let roleBadge = '';
+        
+        if (meeting.user_role) {
+          roleClass = meeting.user_role === 'host' ? '' : 'participant';
+          roleBadge = `<div class="meeting-role-badge role-${meeting.user_role}">
+            ${meeting.user_role === 'host' ? '主持人' : 
+              meeting.user_role === 'participant' ? '參與者' : '觀看者'}
+          </div>`;
+        }
+        
+        // Use the meeting title directly (it should already be in the format: folderName - index date time)
+        const displayTitle = meeting.title;
+        
+        return `
+          <div class="meeting-item ${statusClass} ${roleClass}" onclick="handleMeetingClick(${meeting.id}, '${status}', '${meeting.user_role || 'host'}')">
+            ${roleBadge}
+            <button class="delete-btn" onclick="showDeleteModal('meeting', ${meeting.id}, '${meeting.title}'); event.stopPropagation();" title="刪除課程" ${meeting.user_role && meeting.user_role !== 'host' ? 'style="display:none"' : ''}>
+              <svg viewBox="0 0 24 24">
+                <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+              </svg>
+            </button>
+            <div>
+              <div style="font-weight: 500; margin-bottom: 5px;">${displayTitle}</div>
+              <div class="meeting-status ${status === '進行中' ? 'status-ongoing' : 'status-ended'}">
+                ${status}
+              </div>
+              <div class="meeting-time">${timeStr}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = `<div class="meeting-grid">${meetingsHtml}</div>`;
+    }
+
+    // ===================== 導覽函數 =====================
+    function navigateToRoot() {
+      currentPath = [];
+      displayCurrentPath();
+    }
+
+    function navigateToFolder(path) {
+      currentPath = path;
+      displayCurrentPath();
+    }
+
+    function enterFolder(folderId) {
+      currentPath.push(folderId);
+      displayCurrentPath();
+    }
+
+    // ===================== 模態對話框函數 =====================
+    function showCreateFolderModal() {
+      document.getElementById('folder-name').value = '';
+      document.getElementById('create-folder-modal').style.display = 'block';
+    }
+
+    function hideCreateFolderModal() {
+      document.getElementById('create-folder-modal').style.display = 'none';
+    }
+
+    function showEditFolderModal(folderId) {
+      const folder = folders.find(f => f.id === folderId);
+      if (folder) {
+        editingFolderId = folderId;
+        document.getElementById('edit-folder-name').value = folder.name;
+        document.getElementById('edit-folder-modal').style.display = 'block';
+      }
+    }
+
+    function hideEditFolderModal() {
+      editingFolderId = null;
+      document.getElementById('edit-folder-modal').style.display = 'none';
+    }
+
+    function showCreateMeetingModal() {
+      const currentFolderId = currentPath[currentPath.length - 1];
+      const currentFolder = folders.find(f => f.id === currentFolderId);
+      const folderName = currentFolder ? currentFolder.name : '未知資料夾';
+
+      const folderMeetings = meetings.filter(m => getMeetingFolderId(m) === currentFolderId);
+      const nextIndex = folderMeetings.length + 1;
+
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      
+      const defaultTitle = `${folderName} - ${nextIndex} ${dateStr} ${timeStr}`;
+
+      showUnifiedModal(currentFolderId, defaultTitle);
+    }
+
+    function hideCreateMeetingModal() {
+      document.getElementById('create-meeting-modal').style.display = 'none';
+      window.tempFolderId = null; // 清除暫存的資料夾 ID
+    }
+
+
+    function showDeleteModal(type, id, name) {
+      deleteTarget = { type, id, name };
+      document.getElementById('delete-message').textContent = 
+        `確定要刪除${type === 'folder' ? '資料夾' : '課程'}「${name}」嗎？${type === 'folder' ? '這將同時刪除資料夾內的所有課程。' : ''}`;
+      document.getElementById('delete-modal').style.display = 'block';
+    }
+
+    function hideDeleteModal() {
+      deleteTarget = null;
+      document.getElementById('delete-modal').style.display = 'none';
+    }
+
+    // ===================== 資料夾操作函數 =====================
+    async function createFolder() {
+      const folderName = document.getElementById('folder-name').value.trim();
+      
+      if (!folderName) {
+        alert('請輸入資料夾名稱');
+        return;
+      }
+
+      try {
+        console.log('🚀 開始創建資料夾:', folderName);
+        
+        const response = await apiClient.makeRequest(`${API_BASE_URL}/api/folders`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: folderName
+          })
+        });
+        
+        if (!response) {
+          console.log('❌ 請求被取消（可能是認證問題）');
+          return;
+        }
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || '創建資料夾失敗');
+        }
+        
+        console.log('✅ 資料夾創建成功:', data);
+        
+        // 重新載入資料夾列表
+        await loadFolders();
+        displayCurrentPath();
+        
+        // 關閉模態對話框
+        hideCreateFolderModal();
+        
+        // 更新 Token 狀態
+        updateTokenStatus();
+        
+        showSuccessMessage('資料夾創建成功！');
+        
+      } catch (error) {
+        console.error('❌ 創建資料夾錯誤:', error);
+        showErrorMessage('創建資料夾失敗: ' + error.message);
+      }
+    }
+
+    async function updateFolder() {
+      const newName = document.getElementById('edit-folder-name').value.trim();
+      
+      if (!newName) {
+        alert('請輸入資料夾名稱');
+        return;
+      }
+
+      if (!editingFolderId) {
+        alert('無效的資料夾ID');
+        return;
+      }
+
+      try {
+        console.log('🚀 開始更新資料夾:', editingFolderId, newName);
+        
+        const response = await apiClient.makeRequest(`${API_BASE_URL}/api/folders/${editingFolderId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: newName
+          })
+        });
+        
+        if (!response) {
+          console.log('❌ 請求被取消（可能是認證問題）');
+          return;
+        }
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || '更新資料夾失敗');
+        }
+        
+        console.log('✅ 資料夾更新成功:', data);
+        
+        // 重新載入資料夾列表
+        await loadFolders();
+        displayCurrentPath();
+        
+        // 關閉模態對話框
+        hideEditFolderModal();
+        
+        // 更新 Token 狀態
+        updateTokenStatus();
+        
+        showSuccessMessage('資料夾名稱更新成功！');
+        
+      } catch (error) {
+        console.error('❌ 更新資料夾錯誤:', error);
+        showErrorMessage('更新資料夾失敗: ' + error.message);
+      }
+    }
+
+    async function createMeeting() {
+  const meetingTitle = document.getElementById('meeting-title').value.trim();
+  
+  if (!meetingTitle) {
+    alert('請輸入課程標題');
+    return;
+  }
+
+  // 取得目標資料夾 ID（可能來自 tempFolderId 或當前路徑）
+  const targetFolderId = window.tempFolderId || currentPath[currentPath.length - 1];
+  
+  if (!targetFolderId) {
+    alert('無效的資料夾');
+    return;
+  }
+
+  try {
+    console.log('🚀 開始創建課程:', meetingTitle, '資料夾ID:', targetFolderId);
+    
+    const now = new Date();
+    const response = await apiClient.makeRequest(`${API_BASE_URL}/add-meeting`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title: meetingTitle,
+        startTime: now.toISOString(),
+        endTime: null,
+        folderId: targetFolderId
+      })
+    });
+    
+    if (!response) {
+      console.log('❌ 請求被取消（可能是認證問題）');
+      return;
+    }
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || '創建課程失敗');
+    }
+    
+    console.log('✅ 課程創建成功:', data);
+    
+    // 只有在成功創建課程後才進入該資料夾
+    if (window.tempFolderId) {
+      currentPath = [window.tempFolderId];
+      updateUI();
+      updateBreadcrumb();
+      displayMeetingsInFolder(window.tempFolderId);
+      window.tempFolderId = null; // 清除暫存
+    }
+    
+    // 關閉模態對話框
+    hideCreateMeetingModal();
+    
+    // 更新 Token 狀態
+    updateTokenStatus();
+    
+    // 顯示分享連結視窗
+    showPreJoinShareModal(data.meetingId);
+    
+  } catch (error) {
+    console.error('❌ 創建課程錯誤:', error);
+    showErrorMessage('創建課程失敗: ' + error.message);
+  }
+}
+
+    async function confirmDelete() {
+      if (!deleteTarget) {
+        showErrorMessage('沒有要刪除的項目');
+        return;
+      }
+      const target = { ...deleteTarget }; 
+      const confirmBtn = document.querySelector('#delete-modal .modal-button.danger');
+      const originalText = confirmBtn.textContent;
+      confirmBtn.textContent = '刪除中...';
+      confirmBtn.disabled = true;
+
+      try {
+        console.log('🚀 開始刪除:', deleteTarget);
+        
+        let deleteUrl;
+        if (deleteTarget.type === 'folder') {
+          deleteUrl = `${API_BASE_URL}/api/folders/${deleteTarget.id}`;
+        } else {
+          deleteUrl = `${API_BASE_URL}/api/meetings/${deleteTarget.id}`;
+        }
+
+        const response = await apiClient.makeRequest(deleteUrl, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response) {
+          console.log('❌ 請求被取消（可能是認證問題）');
+          return;
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || '刪除失敗');
+        }
+
+        const result = await response.json();
+        console.log('✅ 刪除成功:', result);
+
+        // 重新載入資料
+        await loadData();
+
+        // 如果刪除的是當前所在的資料夾，返回根目錄
+        if (target.type === 'folder' && currentPath.includes(target.id)) {
+          navigateToRoot();
+        }
+
+        // 關閉對話框
+        hideDeleteModal();
+        
+        // 更新 Token 狀態
+        updateTokenStatus();
+
+        showSuccessMessage(`${target.type === 'folder' ? '資料夾' : '課程'}已成功刪除`);
+
+      } catch (error) {
+        console.error('❌ 刪除錯誤:', error);
+        showErrorMessage('刪除失敗: ' + error.message);
+      } finally {
+        confirmBtn.textContent = originalText;
+        confirmBtn.disabled = false;
+      }
+    }
+
+    // ===================== 其他函數 =====================
+    function handleMeetingClick(meetingId, status, role) {
+      console.log('點擊課程:', meetingId, status, role);
+      
+      if (status === '進行中') {
+        if (confirm('此課程正在進行中，要加入課程嗎？')) {
+          window.location.href = `meeting.html?id=${meetingId}&role=${role}`;
+        }
+      } else {
+        window.location.href = `meeting-detail.html?id=${meetingId}`;
+      }
+    }
+
+    function handleLogout(e) {
+      e.preventDefault();
+      console.log('🚀 用戶登出');
+      
+      const confirmLogout = confirm('確定要登出嗎？');
+      if (confirmLogout) {
+        tokenManager.clearAuth();
+        showSuccessMessage('已成功登出');
+        setTimeout(() => {
+          window.location.href = 'auth.html';
+        }, 1000);
+      }
+    }
+
+    // 新增：成功訊息顯示函數
+    function showSuccessMessage(message) {
+      // 移除現有的訊息
+      const existingMessages = document.querySelectorAll('.success-message, .error-message');
+      existingMessages.forEach(msg => msg.remove());
+      
+      const successDiv = document.createElement('div');
+      successDiv.className = 'success-message';
+      successDiv.textContent = message;
+      document.body.appendChild(successDiv);
+      
+      // 自動隱藏
+      setTimeout(() => {
+        if (successDiv.parentNode) {
+          successDiv.style.opacity = '0';
+          successDiv.style.transform = 'translateX(100%)';
+          setTimeout(() => successDiv.remove(), 300);
+        }
+      }, 3000);
+    }
+
+    // 新增：錯誤訊息顯示函數
+    function showErrorMessage(message) {
+      // 移除現有的訊息
+      const existingMessages = document.querySelectorAll('.success-message, .error-message');
+      existingMessages.forEach(msg => msg.remove());
+      
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.textContent = message;
+      document.body.appendChild(errorDiv);
+      
+      // 自動隱藏
+      setTimeout(() => {
+        if (errorDiv.parentNode) {
+          errorDiv.style.opacity = '0';
+          errorDiv.style.transform = 'translateX(100%)';
+          setTimeout(() => errorDiv.remove(), 300);
+        }
+      }, 5000);
+    }
+
+    function showError(message) {
+      const container = document.getElementById('content-container');
+      container.innerHTML = `<div style="color: red; text-align: center; padding: 20px;">${message}</div>`;
+    }
+
+    // ===================== 鍵盤事件處理 =====================
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        const activeModal = document.querySelector('.modal[style*="block"]');
+        if (activeModal) {
+          const modalId = activeModal.id;
+          if (modalId === 'unified-start-class-modal') {
+            // 檢查當前模態是否處於創建模式或進入模式
+            const actionBtn = document.getElementById('main-action-btn');
+            if (actionBtn.onclick === createClassAndGenerateLink) {
+              createClassAndGenerateLink();
+            } else {
+              // 進入課程模式，直接觸發點擊
+              actionBtn.click();
+            }
+          } else if (modalId === 'create-folder-modal') {
+            createFolder();
+          } else if (modalId === 'edit-folder-modal') {
+            updateFolder();
+          } else if (modalId === 'create-meeting-modal') {
+            createMeeting();
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

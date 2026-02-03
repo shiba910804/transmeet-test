@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>新增課程</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 60px 0 0 0;
+      background-color: #f5f5f5;
+    }
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #0a2463;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+    .container {
+      margin: 0 auto;
+      max-width: 800px;
+      padding: 20px;
+    }
+    .card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .card-header {
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 18px;
+      margin: 0;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button[type="submit"] {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button[type="submit"]:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  
+
+
+  <div class="navbar">
+    <div class="logo">TransMeet</div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">新增課程</h2>
+      </div>
+      <form id="addMeetingForm">
+        <label for="title">課程標題:</label>
+        <input type="text" id="title" name="title" required>
+        
+        <label for="startTime">開始時間:</label>
+        <input type="datetime-local" id="startTime" name="startTime" required>
+        
+        <label for="endTime">結束時間:</label>
+        <input type="datetime-local" id="endTime" name="endTime" required>
+        
+        <button type="submit">提交</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = '';
+    document.getElementById('addMeetingForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const title = document.getElementById('title').value;
+      const startTime = document.getElementById('startTime').value;
+      const endTime = document.getElementById('endTime').value;
+
+      const meetingData = {
+        title: title,
+        startTime: startTime,
+        endTime: endTime
+      };
+
+      fetch(`${API_BASE_URL}/add-meeting`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(meetingData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('課程新增成功');
+        window.location.href = 'index.html'; // 返回主頁
+      })
+      .catch(error => {
+        alert('新增課程失敗');
+        console.error('錯誤:', error);
+      });
+    });
+  </script>
+</body>
+</html>

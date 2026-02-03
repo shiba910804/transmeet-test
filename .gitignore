@@ -1,0 +1,7 @@
+node_modules/
+.aider*
+.env
+package-lock_BACKUP_*.json
+package-lock_BASE_*.json
+package-lock_LOCAL_*.json
+package-lock_REMOTE_*.json

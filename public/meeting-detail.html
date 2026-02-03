@@ -1,0 +1,3180 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>課程詳情</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-docx-js/0.6.0/html-docx.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <!-- 在jspdf之前加載字體 -->
+  <script src="https://cdn.jsdelivr.net/npm/notosans-sc@1.0.0/fonts/NotoSansSC-Regular.otf.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #0a2463;
+      --secondary-color: #2c7db3;
+      --accent-color: #FF9966;
+      --light-bg: #f5f9ff;
+      --dark-text: #252525;
+      --light-text: #ffffff;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 60px 0 0 0;
+      background-color: var(--light-bg);
+      color: var(--dark-text);
+    }
+    
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+    
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .logo {
+      font-weight: bold;
+      font-size: 20px;
+    }
+    
+    .nav-button {
+      padding: 8px 15px;
+      background-color: transparent;
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    
+    .nav-button:hover {
+      background-color: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.6);
+    }
+    
+    .container {
+      margin: 0 auto;
+      max-width: 1200px;
+      padding: 20px;
+    }
+    
+    .card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+      flex: 1;
+    }
+    
+    .card-header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .meeting-details {
+      margin-bottom: 20px;
+    }
+    
+    .detail-row {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    .detail-label-en {
+      font-weight: normal;
+      width: 80px;
+      color: #6b7280;
+      font-size: 12px;
+    }
+    .detail-label {
+      font-weight: bold;
+      width: 80px;
+      color: #333;
+    }
+    
+    .detail-value {
+      color: #666;
+      flex: 1;
+    }
+    
+    .translation-controls {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+    }
+    
+    .translation-controls h4 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    
+    .language-selector-group {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .language-selector {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      min-width: 150px;
+    }
+    
+    .export-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    .primary-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .primary-btn:hover {
+      background-color: #0056b3;
+    }
+    
+    .secondary-btn {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    
+    .secondary-btn:hover {
+      background-color: #545b62;
+    }
+    
+    .danger-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .danger-btn:hover {
+      background-color: #c82333;
+    }
+    
+    .summary-section {
+      display: none !important;
+    }
+
+    
+    .transcripts-section {
+      margin-top: 20px;
+    }
+    
+    .transcript-item {
+      background-color: #f8f9fa;
+      border-left: 3px solid #007bff;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 0 4px 4px 0;
+      position: relative;
+    }
+    
+    .transcript-meta {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .transcript-speaker {
+      font-weight: bold;
+      color: #007bff;
+    }
+    
+    .transcript-time {
+      color: #999;
+    }
+    
+    .transcript-language {
+      background-color: #007bff;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+    
+    .transcript-text {
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    
+    .translation-text {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-left: 3px solid #ffb35c;
+      background-color: #fef9f5;
+      color: #666;
+      font-style: italic;
+      border-radius: 0 4px 4px 0;
+      display: none;
+    }
+    
+    .translation-text.show {
+      display: block;
+    }
+    
+    .translation-loading {
+      color: #666;
+      font-style: italic;
+      font-size: 14px;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 20px 0;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .no-transcripts {
+      text-align: center;
+      color: #666;
+      padding: 40px 20px;
+      font-style: italic;
+    }
+    
+    .loading {
+      text-align: center;
+      color: #666;
+      padding: 20px;
+      font-style: italic;
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.show .modal-content {
+      transform: translateY(0);
+    }
+
+    .delete-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 3000;
+    }
+    
+    .delete-modal-content {
+      position: relative;
+      background-color: white;
+      margin: 15% auto;
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    
+    .delete-modal h3 {
+      color: #dc3545;
+      margin-bottom: 15px;
+    }
+    
+    .delete-modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    .confirm-delete-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 14px;
+    }
+    
+    .confirm-delete-btn:hover {
+      background-color: #c82333;
+    }
+    
+    .confirm-delete-btn:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    .cancel-delete-btn {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      font-size: 14px;
+    }
+    
+    .cancel-delete-btn:hover {
+      background-color: #545b62;
+    }
+
+    .export-controls-redesign {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+      margin-bottom: 20px;
+    }
+
+    .export-header {
+      margin-bottom: 24px;
+    }
+
+    .export-header h3 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--dark-text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .export-header p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .export-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .export-option {
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .export-option:hover {
+      border-color: var(--secondary-color);
+      background: #f8fafc;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .export-option.selected {
+      border-color: var(--primary-color);
+      background: linear-gradient(135deg, rgba(10, 36, 99, 0.1), rgba(44, 125, 179, 0.1));
+      box-shadow: 0 4px 12px -2px rgba(10, 36, 99, 0.2);
+      transform: scale(1.02);
+    }
+    
+    .export-option.selected .option-icon {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      transform: scale(1.1);
+    }
+    
+    .export-option.selected .option-title {
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    .export-option.selected::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .option-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      font-size: 18px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      transition: transform 0.3s ease;
+    }
+
+    .export-option:hover .option-icon {
+      transform: scale(1.1);
+    }
+
+    .option-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--dark-text);
+    }
+
+    .option-description {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .option-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .feature-tag {
+      background: rgba(10, 36, 99, 0.1);
+      color: var(--primary-color);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .export-option.selected .feature-tag {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .language-selection-new {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #e5e7eb;
+      display: none;
+      transition: all 0.3s ease;
+    }
+
+    .language-selection-new.show {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .language-selection-new h4 {
+      margin: 0 0 16px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--dark-text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .language-selector-new {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      color: var(--dark-text);
+      cursor: pointer;
+      transition: border-color 0.3s ease;
+    }
+
+    .language-selector-new:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(10, 36, 99, 0.1);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .export-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 140px;
+      justify-content: center;
+    }
+
+    .export-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px -3px rgba(10, 36, 99, 0.3);
+    }
+
+    .export-btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .secondary-btn-new {
+      background: white;
+      color: var(--primary-color);
+      border: 2px solid var(--primary-color);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .secondary-btn-new:hover {
+      background: var(--primary-color);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .export-progress-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .export-progress {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      min-width: 300px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      .export-options {
+        grid-template-columns: 1fr;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .export-btn,
+      .secondary-btn-new {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="nav-left">
+      <div class="logo">TransClass</div>
+      <a href="#" class="nav-button" id="back-to-main-btn">← 返回主頁 Back to main page</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h1 class="card-title" id="meeting-title">載入中... loading...</h1>
+        <div class="card-header-actions">
+          <button class="primary-btn" id="export-meeting-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+            </svg>
+            匯出檔案 export file
+          </button>
+          <button class="danger-btn" id="delete-meeting-btn" style="display: none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+            </svg>
+            刪除課程 delete class
+          </button>
+        </div>
+      </div>
+      
+      <div class="meeting-details" id="meeting-details">
+        <div class="loading">載入課程詳情中...</div>
+      </div>
+      
+      <div class="transcripts-section" id="transcripts-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h4>課程記錄 Transcripts:</h4>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 14px; color: #666;">翻譯語言 translate to:</span>
+            <select id="view-target-language" class="language-selector" style="padding: 8px 12px; border-radius: 4px; border: 1px solid #ddd;">
+              <option value="">不翻譯</option>
+              <optgroup label="中文">
+                <option value="zh-Hant">繁體中文</option>
+                <option value="zh-Hans">簡體中文</option>
+              </optgroup>
+              <optgroup label="歐洲語言">
+                <option value="en">English</option>
+                <option value="es">Español (西班牙文)</option>
+                <option value="fr">Français (法文)</option>
+                <option value="de">Deutsch (德文)</option>
+                <option value="it">Italiano (義大利文)</option>
+                <option value="pt">Português (葡萄牙文)</option>
+                <option value="ru">Русский (俄文)</option>
+                <option value="nl">Nederlands (荷蘭文)</option>
+                <option value="sv">Svenska (瑞典文)</option>
+                <option value="da">Dansk (丹麥文)</option>
+                <option value="no">Norsk (挪威文)</option>
+                <option value="fi">Suomi (芬蘭文)</option>
+              </optgroup>
+              <optgroup label="亞洲語言">
+                <option value="ja">日本語</option>
+                <option value="ko">한국어</option>
+                <option value="th">ไทย (泰文)</option>
+                <option value="vi">Tiếng Việt (越南文)</option>
+                <option value="id">Bahasa Indonesia (印尼文)</option>
+                <option value="ms">Bahasa Melayu (馬來文)</option>
+              </optgroup>
+              <optgroup label="中東語言">
+                <option value="ar">العربية (阿拉伯文)</option>
+                <option value="fa">فارسی (波斯文)</option>
+                <option value="he">עברית (希伯來文)</option>
+                <option value="tr">Türkçe (土耳其文)</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <div id="transcripts-container">
+          <div class="loading">載入課程記錄中 loading... </div>
+        </div>
+      </div>
+      <div class="summary-section">
+        
+        <div class="export-controls">
+          <button class="primary-btn" id="generate-summary-btn" onclick="handleSummarize()">生成摘要</button>
+          <select id="summary-language" class="language-selector">
+            <optgroup label="中文">
+              <option value="zh-Hant">繁體中文</option>
+              <option value="zh-Hans">簡體中文</option>
+            </optgroup>
+            <optgroup label="歐洲語言">
+              <option value="en">English</option>
+              <option value="es">Español (西班牙文)</option>
+              <option value="fr">Français (法文)</option>
+              <option value="de">Deutsch (德文)</option>
+              <option value="it">Italiano (義大利文)</option>
+              <option value="pt">Português (葡萄牙文)</option>
+              <option value="ru">Русский (俄文)</option>
+              <option value="nl">Nederlands (荷蘭文)</option>
+              <option value="sv">Svenska (瑞典文)</option>
+              <option value="da">Dansk (丹麥文)</option>
+              <option value="no">Norsk (挪威文)</option>
+              <option value="fi">Suomi (芬蘭文)</option>
+            </optgroup>
+            <optgroup label="亞洲語言">
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="th">ไทย (泰文)</option>
+              <option value="vi">Tiếng Việt (越南文)</option>
+              <option value="id">Bahasa Indonesia (印尼文)</option>
+              <option value="ms">Bahasa Melayu (馬來文)</option>
+            </optgroup>
+            <optgroup label="中東語言">
+              <option value="ar">العربية (阿拉伯文)</option>
+              <option value="fa">فارسی (波斯文)</option>
+              <option value="he">עברית (希伯來文)</option>
+              <option value="tr">Türkçe (土耳其文)</option>
+            </optgroup>
+          </select>
+        </div>
+        <div id="summary-section" class="card">
+          <div id="summary-text" style="min-height: 100px; padding: 15px; text-align: center; color: #666;">
+            點擊「生成摘要」按鈕來創建課程摘要
+          </div>
+        </div>
+      </div>
+      <!-- 匯出選項模態 -->
+      <div id="export-modal" class="modal-overlay">
+        <div class="modal-content">
+          <div class="export-controls-redesign">
+            <div class="export-header">
+              <h3>📤 匯出選項</h3>
+              <p>選擇您需要的匯出格式</p>
+              <div class="option-description">Please select the file format you need for export.</div>
+            </div>
+
+            <div class="export-options">
+              <div class="export-option" data-type="translated" onclick="selectExportType('translated')">
+                <div class="option-icon">🌐</div>
+                <div class="option-title">翻譯紀錄</div>
+                <div class="option-description">Translated Transcript</div>
+              </div>
+
+              <div class="export-option" data-type="translated-summary" onclick="selectExportType('translated-summary')">
+                <div class="option-icon">📑</div>
+                <div class="option-title">翻譯摘要</div>
+                <div class="option-description">Translated Summary</div>
+              </div>
+
+              <div class="export-option" data-type="bilingual" onclick="selectExportType('bilingual')">
+                <div class="option-icon">🔄</div>
+                <div class="option-title">原文 + 翻譯紀錄</div>
+                <div class="option-description">Original + Translated Transcript</div>
+              </div>
+              
+              <div class="export-option" data-type="original" onclick="selectExportType('original')">
+                <div class="option-icon">📄</div>
+                <div class="option-title">原文紀錄</div>
+                <div class="option-description">Original Transcript</div>
+              </div>
+
+              <div class="export-option" data-type="original-summary" onclick="selectExportType('original-summary')">
+                <div class="option-icon">📝</div>
+                <div class="option-title">原文摘要</div>
+                <div class="option-description">Original Summary</div>
+              </div>
+
+              
+            </div>
+
+            <!-- 翻譯語言選擇 -->
+            <div id="translation-language-section" class="language-selection-new">
+              <h4>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.87,15.07L10.33,12.56L10.36,12.53C12.1,10.59 13.34,8.36 14.07,6H17V4H10V2H8V4H1V6H12.17C11.5,7.92 10.44,9.75 9,11.35C8.07,10.32 7.3,9.19 6.69,8H4.69C5.42,9.63 6.42,11.17 7.67,12.56L2.58,17.58L4,19L9,14L12.11,17.11L12.87,15.07Z"/>
+                </svg>
+                選擇翻譯語言 Choose Translation Language
+              </h4>
+              <select id="export-translation-language" class="language-selector-new">
+                <optgroup label="歐洲語言">
+                  <option value="en">English (英文)</option>
+                  <option value="es">Español (西班牙文)</option>
+                  <option value="fr">Français (法文)</option>
+                  <option value="de">Deutsch (德文)</option>
+                  <option value="it">Italiano (義大利文)</option>
+                  <option value="pt">Português (葡萄牙文)</option>
+                  <option value="ru">Русский (俄文)</option>
+                  <option value="nl">Nederlands (荷蘭文)</option>
+                  <option value="sv">Svenska (瑞典文)</option>
+                  <option value="da">Dansk (丹麥文)</option>
+                  <option value="no">Norsk (挪威文)</option>
+                  <option value="fi">Suomi (芬蘭文)</option>
+                </optgroup>
+                <optgroup label="亞洲語言">
+                  <option value="ja">日本語 (日文)</option>
+                  <option value="ko">한국어 (韓文)</option>
+                  <option value="zh-Hans">簡體中文</option>
+                  <option value="th">ไทย (泰文)</option>
+                  <option value="vi">Tiếng Việt (越南文)</option>
+                  <option value="id">Bahasa Indonesia (印尼文)</option>
+                  <option value="ms">Bahasa Melayu (馬來文)</option>
+                  <option value="hi">हिन्दी (印地文)</option>
+                  <option value="bn">বাংলা (孟加拉文)</option>
+                </optgroup>
+                <optgroup label="中東語言">
+                  <option value="ar">العربية (阿拉伯文)</option>
+                  <option value="fa">فارسی (波斯文)</option>
+                  <option value="he">עברית (希伯來文)</option>
+                  <option value="tr">Türkçe (土耳其文)</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <!-- 文件格式選擇 -->
+            <div class="export-format-section" style="margin: 20px 0;">
+              <h4 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: var(--dark-text); display: flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+                選擇檔案格式 Choose File Format
+              </h4>
+              <select id="export-file-format" class="language-selector-new">
+                <option value="txt">純文字檔案 (.txt)</option>
+                <option value="docx">Word 文件 (.docx)</option>
+                <option value="pdf">PDF 文件 (.pdf)</option>
+              </select>
+            </div>
+
+            <!--匯出內容選項-->
+            <div class="export-options" style="margin-top: 12px;">
+              <label style="display: flex; align-items: center; gap:8px; cursor: pointer;">
+                <input type="checkbox" id="export-include-meta" checked>
+                匯出包含時間軸與發言者(Timeline+Speaker)
+              </label>
+            </div>
+
+            <!-- 匯出按鈕 -->
+            <div class="action-buttons">
+              <button id="export-button" class="export-btn" onclick="handleExport()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+                </svg>
+                請選擇匯出類型 Please choose export type
+              </button>
+              <button class="secondary-btn-new" onclick="closeExportModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                </svg>
+                取消 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 進度指示器 -->
+      <div id="export-progress-overlay" class="export-progress-overlay">
+        <div class="export-progress">
+          <h3 id="progress-title">處理中...</h3>
+          <div class="option-description">Processing...</div>
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+          <p id="progress-text">請稍候...</p>
+          <div class="option-description">Please wait...</div>
+          <small id="progress-detail" style="color: #666;"></small>
+        </div>
+      </div>
+
+      <!-- 刪除確認對話框 -->
+      <div id="delete-modal" class="delete-modal">
+        <div class="delete-modal-content">
+          <h3>⚠️ 確認刪除課程記錄</h3>
+          <div class="option-description" style="color: #dc3545;">⚠️Confirm deletion</div>
+          <p id="delete-confirm-text">確定要刪除這個課程記錄嗎？</p>
+          <p id="delete-confirm-text-en">Are you sure you want to delete this course record?</p>
+          <p style="color: #dc3545; font-size: 14px;">此操作無法撤銷，課程記錄和所有課程內容將永久刪除。</p>
+          <p style="color: #dc3545; font-size: 10px;">This operation cannot be undone, and course records and all course content will be permanently deleted.</p>
+          <div class="delete-modal-buttons">
+            <button class="cancel-delete-btn" id="cancel-delete-btn">取消 Cancel</button>
+            <button class="confirm-delete-btn" id="confirm-delete-btn">確定刪除 Confirm Deletion</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 🔥 修復：正確的 API 基礎 URL（根據新端口調整）
+    const API_BASE_URL = window.location.origin.includes('3000') ? '' : '';
+    let currentMeetingData = null;
+    let translationCache = new Map();
+    let authToken = null;
+
+    // 🔥 修復：初始化匯出狀態
+    window.exportState = {
+      selectedTypes: [],
+      currentMeetingData: null,
+      translationCache: new Map(),
+      isExporting: false
+    };
+
+    // 頁面初始化
+    document.addEventListener('DOMContentLoaded', async () => {
+      bindEventListeners();
+      
+      try {
+        if (!checkAuthStatus()) {
+          return;
+        }
+        
+        // 檢查用戶角色並設置刪除按鈕可見性
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            const deleteButton = document.getElementById('delete-meeting-btn');
+            if (deleteButton && user.role === 'student') {
+              deleteButton.style.display = 'none';
+            } else if (deleteButton) {
+              deleteButton.style.display = 'flex';
+            }
+          } catch (e) {
+            console.error('解析用戶資料失敗:', e);
+          }
+        }
+        
+        await loadUserLanguagePreference();
+        
+        const meetingId = getMeetingIdFromUrl();
+        if (!meetingId) {
+          showError('無效的課程 ID');
+          return;
+        }
+        
+        await loadMeetingDetails(meetingId);
+        
+        console.log('✅ 頁面初始化完成');
+        
+      } catch (error) {
+        console.error('❌ 頁面初始化失敗:', error);
+        showError('頁面初始化失敗: ' + error.message);
+      }
+    });
+
+    function computeDefaultTitle(meeting) {
+      const folderName =
+        meeting.folderName ||
+        meeting.folder_name ||
+        meeting.folder ||
+        meeting.teacher_folder_name ||
+        '未命名資料夾';
+      const idx =
+        meeting.meeting_index ||
+        meeting.index ||
+        meeting.sequence ||
+        meeting.count ||
+        1;
+      const d = meeting.start_time ? new Date(meeting.start_time) : new Date();
+      const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+      const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      return `${folderName} - ${idx} ${dateStr} ${timeStr}`;
+    }
+
+
+    // 認證檢查
+    function checkAuthStatus() {
+      authToken = localStorage.getItem('authToken');
+      const userStr = localStorage.getItem('user');
+  
+      if (!authToken || !userStr) {
+        console.log('⚠️ 用戶未登入，跳轉到登入頁面');
+        window.location.href = 'auth.html';
+        return false;
+      }
+  
+      try {
+        const currentUser = JSON.parse(userStr);
+        console.log('👤 當前用戶:', currentUser.email || '未知');
+    
+        // 設置返回主頁按鈕的連結
+        const backButton = document.getElementById('back-to-main-btn');
+        if (backButton) {
+          if (currentUser.role === 'student') {
+            backButton.href = 'student-mainpage.html';
+          } else if (currentUser.role === 'teacher') {
+            backButton.href = 'index.html';
+          } else {
+            backButton.href = 'auth.html'; // 未知角色回到登入頁
+          }
+        }
+    
+        return true;
+      } catch (error) {
+        console.error('⚫ 解析用戶資料錯誤:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        window.location.href = 'auth.html';
+        return false;
+      } 
+    }
+
+
+    // 載入語言偏好
+    async function loadUserLanguagePreference() {
+      try {
+        console.log('🌐 載入用戶語言偏好...');
+        
+        let preferredLanguage = localStorage.getItem('userLanguage');
+        
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/user/language`, {
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.preferredLanguage) {
+              preferredLanguage = data.preferredLanguage;
+              localStorage.setItem('userLanguage', preferredLanguage);
+            }
+          }
+        } catch (apiError) {
+          console.log('📱 使用本地語言偏好');
+        }
+        
+        if (preferredLanguage && preferredLanguage !== 'zh-Hant') {
+          setLanguageSelectors(preferredLanguage);
+          console.log(`✅ 語言偏好已設定: ${getLanguageName(preferredLanguage)}`);
+        }
+        
+      } catch (error) {
+        console.error('❌ 載入語言偏好失敗:', error);
+      }
+    }
+
+    // 設定語言選擇器
+    function setLanguageSelectors(language) {
+      const selectors = [
+        'view-target-language',
+        'summary-language', 
+        'export-translation-language'
+      ];
+      
+      selectors.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          const option = element.querySelector(`option[value="${language}"]`);
+          if (option) {
+            element.value = language;
+          }
+        }
+      });
+    }
+
+    // 獲取課程 ID
+    function getMeetingIdFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+      console.log('🆔 課程 ID:', id);
+      return id;
+    }
+
+    // 載入課程詳情
+    async function loadMeetingDetails(meetingId) {
+      try {
+        console.log('📡 載入課程詳情...', meetingId);
+        
+        const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`載入失敗 (${response.status}): ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        currentMeetingData = data;
+        window.exportState.currentMeetingData = data;
+        
+        console.log('✅ 課程資料載入成功:', {
+          title: data.meeting?.title,
+          transcriptCount: data.transcripts?.length || 0
+        });
+        
+        displayMeetingDetails(data);
+        
+      } catch (error) {
+        console.error('❌ 載入課程詳情錯誤:', error);
+        showError('無法載入課程詳情: ' + error.message);
+      }
+    }
+
+    // 顯示課程詳情
+    function displayMeetingDetails(data) {
+      try {
+        if (!data.meeting) {
+          throw new Error('課程資料格式錯誤');
+        }
+
+        const meetingTitleElement = document.getElementById('meeting-title');
+        const meetingDetailsElement = document.getElementById('meeting-details');
+        
+        // 直接使用會議標題（應該已經是「資料夾名稱 + 次數 + 日期 時間」的格式）
+        // 直接使用會議標題（應該已經是「資料夾名稱 + 次數 + 日期 時間」的格式）
+        const m = data.meeting;
+        const title = (m.title && m.title.trim()) ? m.title : computeDefaultTitle(m);
+
+        // 顯示用
+        meetingTitleElement.textContent = title;
+
+        // 也把內部資料補上（讓匯出檔名、細節列印等地方一致）
+        data.meeting.title = title;
+
+        
+        const startTime = formatDateTime(data.meeting.start_time);
+        const endTime = data.meeting.end_time ? formatDateTime(data.meeting.end_time) : '未結束';
+        const duration = calculateMeetingDuration(data.meeting);
+        
+        meetingDetailsElement.innerHTML = `
+          <div class="detail-row">
+            <div class="detail-label">課程標題:</div>
+            <div class="detail-label-en">Class title</div>
+            <div class="detail-value">${data.meeting.title || '未命名課程'}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">開始時間:</div>
+            <div class="detail-label-en">Start time</div>
+            <div class="detail-value">${startTime}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">結束時間:</div>
+            <div class="detail-label-en">End time</div>
+            <div class="detail-value">${endTime}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">課程時長:</div>
+            <div class="detail-label-en">Duration</div>
+            <div class="detail-value">${duration}</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">狀態:</div>
+            <div class="detail-label-en">Status</div>
+            <div class="detail-value">
+              <span style="color: ${data.meeting.end_time ? '#28a745' : '#ffc107'}">
+                ${data.meeting.end_time ? '已結束' : '進行中'}
+              </span>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">課程記錄:</div>
+            <div class="detail-label-en">Class record</div>
+            <div class="detail-value">${data.transcripts?.length || 0} 條</div>
+          </div>
+        `;
+        
+        displayTranscripts(data.transcripts || []);
+        
+      } catch (error) {
+        console.error('❌ 顯示課程詳情錯誤:', error);
+        showError('顯示課程詳情失敗: ' + error.message);
+      }
+    }
+
+    function getExportIncludeMeta(){
+      const el = document.getElementById('export-include-meta');
+      return el ? el.checked : true; //找不到就當作預設勾選，避免壞掉
+    }
+
+    // 格式化日期時間
+    function formatDateTime(dateStr) {
+      if (!dateStr) return '未知';
+      try {
+        return new Date(dateStr).toLocaleString('zh-TW', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+      } catch (error) {
+        return '日期格式錯誤';
+      }
+    }
+
+    // 顯示課程記錄
+    function displayTranscripts(transcripts) {
+      const transcriptsContainer = document.getElementById('transcripts-container');
+      
+      if (!transcripts || transcripts.length === 0) {
+        transcriptsContainer.innerHTML = `
+          <div class="no-transcripts">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="#ccc" style="margin-bottom: 10px;">
+              <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z"/>
+            </svg>
+            <p>此課程沒有課程記錄 No records found</p>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        transcriptsContainer.innerHTML = transcripts.map((transcript, index) => {
+          const time = formatDateTime(transcript.timestamp);
+          const languageName = getLanguageName(transcript.original_language);
+          
+          return `
+            <div class="transcript-item" data-index="${index}">
+              <div class="transcript-meta">
+                <div>
+                  <span class="transcript-speaker">${transcript.speaker || '未知發言人'}</span>
+                  <span class="transcript-time"> - ${time}</span>
+                  <span class="transcript-language">${languageName}</span>
+                </div>
+              </div>
+              <div class="transcript-text">${transcript.original_text || '[無內容]'}</div>
+              <div class="translation-text" data-target-lang="">
+                <!-- 翻譯內容將在這裡顯示 -->
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        console.log(`✅ 顯示 ${transcripts.length} 條課程記錄`);
+        
+      } catch (error) {
+        console.error('❌ 渲染課程記錄錯誤:', error);
+        transcriptsContainer.innerHTML = `
+          <div class="error-message">
+            渲染課程記錄時發生錯誤: ${error.message}
+          </div>
+        `;
+      }
+    }
+
+    // 綁定事件監聽器
+    function bindEventListeners() {
+      try {
+        console.log('🔗 綁定事件監聽器...');
+        
+        const viewLanguageSelector = document.getElementById('view-target-language');
+        if (viewLanguageSelector) {
+          viewLanguageSelector.addEventListener('change', handleViewLanguageChange);
+        }
+        
+        const generateSummaryBtn = document.getElementById('generate-summary-btn');
+        if (generateSummaryBtn) {
+          generateSummaryBtn.addEventListener('click', handleSummarize);
+          console.log('✅ 摘要按鈕事件綁定成功');
+        } else {
+          console.error('❌ 找不到摘要按鈕');
+        }
+        
+        const exportMeetingBtn = document.getElementById('export-meeting-btn');
+        if (exportMeetingBtn) {
+          exportMeetingBtn.addEventListener('click', toggleExportOptions);
+        }
+        
+        const deleteMeetingBtn = document.getElementById('delete-meeting-btn');
+        if (deleteMeetingBtn) {
+          deleteMeetingBtn.addEventListener('click', showDeleteModal);
+        }
+        
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', hideDeleteModal);
+        if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDeleteMeeting);
+        
+        const exportModal = document.getElementById('export-modal');
+        if (exportModal) {
+          exportModal.addEventListener('click', (e) => {
+            if (e.target === exportModal) {
+              closeExportModal();
+            }
+          });
+        }
+        
+        const deleteModal = document.getElementById('delete-modal');
+        if (deleteModal) {
+          deleteModal.addEventListener('click', (e) => {
+            if (e.target === deleteModal) {
+              hideDeleteModal();
+            }
+          });
+        }
+        
+        console.log('✅ 事件監聽器綁定完成');
+        
+      } catch (error) {
+        console.error('❌ 綁定事件監聽器失敗:', error);
+      }
+    }
+
+    // 處理查看語言變更
+    async function handleViewLanguageChange(event) {
+      const targetLanguage = event.target.value;
+      console.log('🌐 切換查看語言:', targetLanguage || '無翻譯');
+      
+      if (!targetLanguage) {
+        document.querySelectorAll('.translation-text').forEach(element => {
+          element.classList.remove('show');
+        });
+        return;
+      }
+
+      if (!currentMeetingData?.transcripts) {
+        console.warn('⚠️ 沒有課程記錄可翻譯');
+        return;
+      }
+
+      const transcriptItems = document.querySelectorAll('.transcript-item');
+      
+      for (let i = 0; i < transcriptItems.length && i < currentMeetingData.transcripts.length; i++) {
+        const item = transcriptItems[i];
+        const transcript = currentMeetingData.transcripts[i];
+        const translationElement = item.querySelector('.translation-text');
+        
+        if (!transcript || !translationElement) continue;
+        
+        if (normalizeLanguageCode(transcript.original_language) === normalizeLanguageCode(targetLanguage)) {
+          translationElement.classList.remove('show');
+          continue;
+        }
+        
+        const cacheKey = `${transcript.original_text}-${transcript.original_language}-${targetLanguage}`;
+        
+        if (translationCache.has(cacheKey)) {
+          const cachedTranslation = translationCache.get(cacheKey);
+          translationElement.innerHTML = `<strong>翻譯 translate (${getLanguageName(targetLanguage)}):</strong> ${cachedTranslation}`;
+          translationElement.classList.add('show');
+        } else {
+          translationElement.innerHTML = `
+            <span class="translation-loading">
+              <span class="loading-spinner"></span> 正在翻譯... translating...
+            </span>
+          `;
+          translationElement.classList.add('show');
+          
+          try {
+            const translation = await translateText(
+              transcript.original_text, 
+              transcript.original_language, 
+              targetLanguage
+            );
+            
+            if (translation) {
+              translationCache.set(cacheKey, translation);
+              translationElement.innerHTML = `<strong>翻譯 translate (${getLanguageName(targetLanguage)}):</strong> ${translation}`;
+            } else {
+              translationElement.innerHTML = `<strong>翻譯失敗 translate failed</strong>`;
+            }
+          } catch (error) {
+            console.error(`❌ 翻譯第 ${i + 1} 條記錄失敗:`, error);
+            translationElement.innerHTML = `<strong>翻譯失敗 translate failed:</strong> ${error.message}`;
+          }
+        }
+        
+        if (i < transcriptItems.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+    }
+
+    // 翻譯文字核心函數
+    async function translateText(text, sourceLanguage, targetLanguage) {
+      if (!text || text.trim() === '') {
+        console.warn('⚠️ 翻譯文本為空 translating text is empty');
+        return text;
+      }
+      
+      const normalizedSource = normalizeLanguageCodeForAPI(sourceLanguage);
+      const normalizedTarget = normalizeLanguageCodeForAPI(targetLanguage);
+
+      console.log('🌐 翻譯請求 translating request:', {
+        text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+        from: normalizedSource,
+        to: normalizedTarget
+      });
+      
+      if (!normalizedSource || !normalizedTarget) {
+        throw new Error(`無效的語言代碼: ${sourceLanguage} -> ${targetLanguage}`);
+      }
+      
+      if (normalizedSource === normalizedTarget) {
+        console.log('✅ 源語言與目標語言相同，跳過翻譯');
+        return text;
+      }
+
+      const processedText = preprocessTextForTranslation(text);
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/translate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            text: processedText,
+            from: normalizedSource,
+            to: normalizedTarget
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: response.statusText }));
+          throw new Error(errorData.error || `翻譯請求失敗 (${response.status})`);
+        }
+        
+        const data = await response.json();
+        const translatedText = data.text || data.translated_text || data.translation;
+        
+        if (!translatedText) {
+          throw new Error('翻譯服務返回了無效的響應');
+        }
+        
+        console.log('✅ 翻譯成功 translating succeeded');
+        return translatedText.trim();
+        
+      } catch (error) {
+        console.error('❌ 翻譯失敗 translating failed:', error);
+        throw error;
+      }
+    }
+
+    // 文本預處理
+    function preprocessTextForTranslation(text) {
+      return text.trim()
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/["']/g, '"')
+        .substring(0, 5000);
+    }
+
+    // 語言代碼標準化
+    function normalizeLanguageCodeForAPI(langCode) {
+      if (!langCode) return null;
+      
+      const azureLanguageMap = {
+        'zh-Hant': 'zh-TW',
+        'zh-Hans': 'zh-CN',
+        'zh-TW': 'zh-TW',
+        'zh-CN': 'zh-CN',
+        'zh': 'zh-CN',
+        'en-US': 'en',
+        'en-GB': 'en',
+        'en': 'en',
+        'ja-JP': 'ja',
+        'ja': 'ja',
+        'ko-KR': 'ko',
+        'ko': 'ko'
+      };
+      
+      return azureLanguageMap[langCode] || langCode.split('-')[0];
+    }
+
+    function normalizeLanguageCode(langCode) {
+      if (!langCode) return 'unknown';
+      
+      const normalizedCodes = {
+        'zh-CN': 'zh-Hans',
+        'zh-TW': 'zh-Hant',
+        'zh-HK': 'zh-Hant',
+        'en-US': 'en',
+        'en-GB': 'en'
+      };
+      
+      return normalizedCodes[langCode] || langCode.split('-')[0];
+    }
+
+    // 生成摘要函數（新增 silent 參數）
+    async function handleSummarize(silent = false) {
+      const btn = document.getElementById('generate-summary-btn');
+      const summaryTextEl = document.getElementById('summary-text');
+      const summaryLanguage = document.getElementById('summary-language').value || 'zh-Hant';
+      console.log('🤖 開始生成摘要...');
+      let targetLang = document.getElementById('summary-language').value || localStorage.getItem('userLanguage') || 'zh-Hant';
+      document.getElementById('summary-language').value = targetLang;
+
+      if (!silent) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="loading-spinner"></span> 摘要生成中...`;
+        summaryTextEl.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+        <div class="loading-spinner" style="margin: 0 auto;"></div>
+        <p>AI 正在分析課程內容，生成${getLanguageName(targetLang)}摘要...</p>
+      </div>
+    `;
+  }
+
+  try {
+    const transcripts = currentMeetingData?.transcripts || [];
+    if (transcripts.length === 0) throw new Error('沒有課程記錄可摘要');
+
+    const combinedText = transcripts.map(t => `${t.speaker}: ${t.original_text}`).join('\n').trim();
+    if (combinedText.length < 30) throw new Error('內容太少，無法產生有效摘要');
+
+    const summaryResponse = await fetch(`${API_BASE_URL}/api/summarize`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({ 
+        text: combinedText,
+        target_language: targetLang
+      })
+    });
+
+    if (!summaryResponse.ok) {
+      const errorData = await summaryResponse.json().catch(() => ({ error: summaryResponse.statusText }));
+      throw new Error(errorData.error || `摘要生成失敗 (${summaryResponse.status})`);
+    }
+
+    const summaryResult = await summaryResponse.json();
+    if (!summaryResult.summary) throw new Error('API 返回了空的摘要內容');
+
+    window.currentSummaryText = summaryResult.summary;
+    window.currentSummaryData = summaryResult;
+
+    if (!silent) {
+      displaySummarySuccess(summaryResult, targetLang);
+    }
+
+  } catch (error) {
+    if (!silent) {
+      displaySummaryError(error);
+    } else {
+      throw error;
+    }
+  } finally {
+    if (!silent) {
+      btn.disabled = false;
+      btn.innerHTML = '生成摘要';
+    }
+  }
+}
+
+
+    // 顯示摘要成功結果
+    function displaySummarySuccess(summaryResult, targetLang) {
+      const summaryTextEl = document.getElementById('summary-text');
+      
+      const content = `
+        <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+          <div style="font-weight: 600; color: #155724;">✅ 摘要生成成功</div>
+          <div style="font-size: 13px; color: #155724;">使用 AI 模型生成 ${getLanguageName(targetLang)} 摘要</div>
+        </div>
+        <div style="background: #f8f9fa; border-left: 4px solid #007bff; padding: 20px; margin: 16px 0; line-height: 1.6;">
+          ${summaryResult.summary}
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 16px;">
+          <button onclick="copySummaryToClipboard()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+            📋 複製摘要
+          </button>
+          <button onclick="exportSummaryOnly()" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+            📄 匯出摘要
+          </button>
+        </div>
+      `;
+
+      summaryTextEl.innerHTML = content;
+      window.currentSummaryText = summaryResult.summary;
+      window.currentSummaryData = summaryResult;
+    }
+
+    // 顯示摘要錯誤
+    function displaySummaryError(error) {
+      const summaryTextEl = document.getElementById('summary-text');
+      
+      summaryTextEl.innerHTML = `
+        <div style="color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; padding: 20px; border-radius: 8px; text-align: center;">
+          <h4>❌ 摘要生成失敗</h4>
+          <p>${error.message}</p>
+          <button onclick="handleSummarize()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 10px;">
+            🔄 重試
+          </button>
+        </div>
+      `;
+    }
+
+    // 匯出功能
+    function selectExportType(type) {
+      const option = document.querySelector(`.export-option[data-type="${type}"]`);
+      if (!option) return;
+      
+      const isCurrentlySelected = option.classList.contains('selected');
+      
+      if (isCurrentlySelected) {
+        option.classList.remove('selected');
+        window.exportState.selectedTypes = window.exportState.selectedTypes.filter(t => t !== type);
+      } else {
+        option.classList.add('selected');
+        if (!window.exportState.selectedTypes.includes(type)) {
+          window.exportState.selectedTypes.push(type);
+        }
+      }
+      
+      updateExportButtonState();
+      updateLanguageSelectionVisibility();
+    }
+
+    function updateExportButtonState() {
+      const exportBtn = document.getElementById('export-button');
+      const selectedTypes = window.exportState.selectedTypes;
+      
+      if (selectedTypes.length === 0) {
+        exportBtn.disabled = true;
+        exportBtn.innerHTML = '📤 請選擇匯出類型';
+      } else {
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = `📤 匯出 ${selectedTypes.length} 種格式`;
+      }
+    }
+
+    function updateLanguageSelectionVisibility() {
+      const languageSection = document.getElementById('translation-language-section');
+      const selectedTypes = window.exportState.selectedTypes;
+      
+      const needsTranslation = selectedTypes.some(type => 
+        type === 'translated' || 
+        type === 'translated-summary' || 
+        type === 'bilingual'
+      );
+      
+      if (needsTranslation) {
+        languageSection.classList.add('show');
+        languageSection.style.display = 'block';
+      } else {
+        languageSection.classList.remove('show');
+        languageSection.style.display = 'none';
+      }
+    }
+
+    async function handleExport() {
+      const selectedTypes = window.exportState.selectedTypes;
+      const includeMeta = document.getElementById('export-include-meta')?.checked ?? true;
+      
+      if (selectedTypes.length === 0) {
+        showNotification('請至少選擇一種匯出類型', 'error');
+        return;
+      }
+
+      if (!currentMeetingData?.meeting) {
+        showNotification('無法獲取課程資料', 'error');
+        return;
+      }
+
+      window.exportState.isExporting = true;
+      showExportProgress('開始匯出', '正在準備匯出...', 0);
+
+      try {
+        let successCount = 0;
+        
+        for (let i = 0; i < selectedTypes.length; i++) {
+          const type = selectedTypes[i];
+          const progress = Math.round(((i + 1) / selectedTypes.length) * 100);
+          
+          updateExportProgress(`匯出中 (${i + 1}/${selectedTypes.length})`, progress, getExportTypeName(type));
+          
+          try {
+            await processExportType(type);
+            successCount++;
+            
+            if (i < selectedTypes.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          } catch (error) {
+            console.error(`❌ ${type} 匯出失敗:`, error);
+          }
+        }
+
+        if (successCount === selectedTypes.length) {
+          showNotification(`✅ 所有 ${successCount} 種格式匯出成功！`, 'success');
+        } else {
+          showNotification(`⚠️ ${successCount}/${selectedTypes.length} 種格式匯出成功`, 'warning');
+        }
+
+      } catch (error) {
+        console.error('❌ 匯出失敗:', error);
+        showNotification('匯出失敗: ' + error.message, 'error');
+      } finally {
+        window.exportState.isExporting = false;
+        hideExportProgress();
+        closeExportModal();
+      }
+    }
+    
+    function getIncludeMetaOption() {
+      return document.getElementById('export-include-meta')?.checked ?? true;
+    }
+    
+    async function processExportType(type) {
+      const meeting = currentMeetingData.meeting;
+      const transcripts = currentMeetingData.transcripts || [];
+
+      switch (type) {
+        case 'original':
+          await exportOriginalTranscript(meeting, transcripts);
+          break;
+        case 'original-summary':
+          await exportOriginalSummary(meeting);
+          break;
+        case 'translated':
+          await exportTranslatedTranscript(meeting, transcripts);
+          break;
+        case 'translated-summary':
+          await exportTranslatedSummary(meeting);
+          break;
+        case 'bilingual':
+          await exportBilingualTranscript(meeting, transcripts);
+          break;
+        default:
+          throw new Error(`不支援的匯出類型: ${type}`);
+      }
+    }
+
+    async function exportOriginalTranscript(meeting, transcripts) {
+      if (transcripts.length === 0) {
+        throw new Error('沒有課程記錄可匯出');
+      }
+      
+      const includeMeta = getIncludeMetaOption();
+      const content = generateOriginalTranscriptContent(meeting, transcripts, includeMeta);
+      const fileFormat = getSelectedFileFormat();
+      
+      await downloadFile(content, `${meeting.title}_原文課程_${getTimestamp()}`, fileFormat, meeting.title);
+    }
+
+    async function exportOriginalSummary(meeting) {
+      let summaryText = getSummaryText();
+      if (!summaryText) {
+        console.log('⚠️ 沒有摘要，自動生成中...');
+        await handleSummarize(true);
+        summaryText = getSummaryText();
+        if (!summaryText) throw new Error('摘要生成失敗');
+      }
+
+      const content = generateSummaryDocument(meeting, summaryText, '原文');
+      const fileFormat = getSelectedFileFormat();
+      await downloadFile(content, `${meeting.title}_原文摘要_${getTimestamp()}`, fileFormat, meeting.title);
+    }
+
+    async function exportTranslatedTranscript(meeting, transcripts) {
+      if (transcripts.length === 0) {
+        throw new Error('沒有課程記錄可匯出');
+      }
+      
+      const targetLanguage = getSelectedTranslationLanguage();
+      if (!targetLanguage) {
+        throw new Error('請選擇翻譯語言');
+      }
+      
+      const includeMeta = getIncludeMetaOption();
+      const content = await generateTranslatedTranscriptContent(meeting, transcripts, targetLanguage, includeMeta);
+      const languageName = getLanguageName(targetLanguage);
+      const fileFormat = getSelectedFileFormat();
+      
+      await downloadFile(content, `${meeting.title}_${languageName}_課程_${getTimestamp()}`, fileFormat, meeting.title);
+    }
+
+    async function exportTranslatedSummary(meeting) {
+      let summaryText = getSummaryText();
+      if (!summaryText) {
+        console.log('⚠️ 沒有摘要，自動生成中...');
+        await handleSummarize(true);
+        summaryText = getSummaryText();
+        if (!summaryText) throw new Error('摘要生成失敗');
+      }
+
+      const targetLanguage = getSelectedTranslationLanguage();
+      if (!targetLanguage) throw new Error('請選擇翻譯語言');
+
+      const translatedSummary = await translateText(summaryText, 'zh-Hant', targetLanguage);
+      const languageName = getLanguageName(targetLanguage);
+      const content = generateSummaryDocument(meeting, translatedSummary, languageName);
+      const fileFormat = getSelectedFileFormat();
+      await downloadFile(content, `${meeting.title}_${languageName}_摘要_${getTimestamp()}`, fileFormat, meeting.title);
+    }
+
+    async function exportBilingualTranscript(meeting, transcripts) {
+      if (transcripts.length === 0) {
+        throw new Error('沒有課程記錄可匯出');
+      }
+      
+      const targetLanguage = getSelectedTranslationLanguage();
+      if (!targetLanguage) {
+        throw new Error('請選擇翻譯語言');
+      }
+      
+      const includeMeta = getIncludeMetaOption();
+      const content = await generateBilingualTranscriptContent(meeting, transcripts, targetLanguage, includeMeta);
+      const languageName = getLanguageName(targetLanguage);
+      const fileFormat = getSelectedFileFormat();
+      
+      await downloadFile(content, `${meeting.title}_雙語對照_${languageName}_${getTimestamp()}`, fileFormat, meeting.title);
+    }
+
+    // 內容生成函數
+    function generateOriginalTranscriptContent(meeting, transcripts, includeMeta = true) {
+      let content = `${meeting.title} - 原文課程記錄\n`;
+      content += `${'='.repeat(60)}\n\n`;
+      
+      content += `課程標題 Class title: ${meeting.title}\n`;
+      content += `開始時間 Start time: ${formatDateTime(meeting.start_time)}\n`;
+      content += `結束時間 End time: ${meeting.end_time ? formatDateTime(meeting.end_time) : '未結束'}\n`;
+      content += `記錄數量 Records count: ${transcripts.length} 條\n`;
+      content += `匯出時間 Export time: ${formatDateTime(new Date().toISOString())}\n\n`;
+      content += `${'='.repeat(60)}\n\n`;
+      
+      transcripts.forEach((transcript, index) => {
+        const time = formatDateTime(transcript.timestamp);
+        const languageName = getLanguageName(transcript.original_language);
+        
+        if(includeMeta){
+          content += `[${index + 1}] ${time}\n`;
+          content += `發言者 Speaker: ${transcript.speaker} (${languageName})\n`;
+        } else {
+          content += `[${index + 1}] \n`;
+        }
+
+        content += `內容 Content: ${transcript.original_text}\n\n`;
+      });
+      
+      return content;
+    }
+
+    async function generateTranslatedTranscriptContent(meeting, transcripts, targetLanguage, includeMeta=true) {
+      let content = `${meeting.title} - ${getLanguageName(targetLanguage)} 課程記錄 Class record\n`;
+      content += `${'='.repeat(60)}\n\n`;
+      
+      content += `課程標題 Class title: ${meeting.title}\n`;
+      content += `開始時間 Start time: ${formatDateTime(meeting.start_time)}\n`;
+      content += `結束時間 End time: ${meeting.end_time ? formatDateTime(meeting.end_time) : '未結束'}\n`;
+      content += `記錄數量 Records count: ${transcripts.length} 條\n`;
+      content += `翻譯語言 Translation language: ${getLanguageName(targetLanguage)}\n`;
+      content += `匯出時間 Export time: ${formatDateTime(new Date().toISOString())}\n\n`;
+      content += `${'='.repeat(60)}\n\n`;
+      
+      for (let i = 0; i < transcripts.length; i++) {
+        const transcript = transcripts[i];
+        const time = formatDateTime(transcript.timestamp);
+
+        if(includeMeta){
+          content += `[${i + 1}] ${time}\n`;
+          content += `發言者 Speaker: ${transcript.speaker}\n`;
+        } else {
+          content += `[${i + 1}] \n`;
+        }
+        
+        if (normalizeLanguageCode(transcript.original_language) !== normalizeLanguageCode(targetLanguage)) {
+          try {
+            const translation = await translateText(transcript.original_text, transcript.original_language, targetLanguage);
+            content += `內容 Content: ${translation}\n\n`;
+          } catch (error) {
+            content += `內容 Content: [翻譯失敗] ${transcript.original_text}\n\n`;
+          }
+        } else {
+          content += `內容 Content: ${transcript.original_text}\n\n`;
+        }
+        
+        if (i < transcripts.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+      
+      return content;
+    }
+
+    async function generateBilingualTranscriptContent(meeting, transcripts, targetLanguage, includeMeta) {
+      let content = `${meeting.title} - 雙語對照課程記錄\n`;
+      content += `${'='.repeat(60)}\n\n`;
+
+      content += `課程標題 Class title: ${meeting.title}\n`;
+      content += `開始時間 Start time: ${formatDateTime(meeting.start_time)}\n`;
+      content += `結束時間 End time: ${meeting.end_time ? formatDateTime(meeting.end_time) : '未結束'}\n`;
+      content += `記錄數量 Records count: ${transcripts.length} 條\n`;
+      content += `對照語言 Bilingual language: 原文 + ${getLanguageName(targetLanguage)}\n`;
+      content += `匯出時間 Export time: ${formatDateTime(new Date().toISOString())}\n\n`;
+      content += `${'='.repeat(60)}\n\n`;
+      
+      for (let i = 0; i < transcripts.length; i++) {
+        const transcript = transcripts[i];
+        const time = formatDateTime(transcript.timestamp);
+        const languageName = getLanguageName(transcript.original_language);
+        
+        if (includeMeta){
+          content += `[${i + 1}] ${time}\n`;
+          content += `發言者 Speaker: ${transcript.speaker} (${languageName})\n`;
+        } else {
+          content += `[${i + 1}] \n`;
+        }
+                
+        content += `原文 Original: ${transcript.original_text}\n`;
+
+        if (normalizeLanguageCode(transcript.original_language) !== normalizeLanguageCode(targetLanguage)) {
+          try {
+            const translation = await translateText(transcript.original_text, transcript.original_language, targetLanguage);
+            content += `翻譯 (${getLanguageName(targetLanguage)}): ${translation}\n\n`;
+          } catch (error) {
+            content += `翻譯 (${getLanguageName(targetLanguage)}): [翻譯失敗]\n\n`;
+          }
+        } else {
+          content += `翻譯: [原文語言與目標語言相同，無需翻譯]\n\n`;
+        }
+        
+        if (i < transcripts.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+      
+      return content;
+    }
+
+    function generateSummaryDocument(meeting, summaryText, languageType) {
+      const startTime = formatDateTime(meeting.start_time);
+      const endTime = meeting.end_time ? formatDateTime(meeting.end_time) : '未結束';
+      
+      let content = `${meeting.title} - 課程摘要 (${languageType})\n`;
+      content += `${'='.repeat(60)}\n\n`;
+
+      content += `課程標題 Class title: ${meeting.title}\n`;
+      content += `開始時間 Start time: ${startTime}\n`;
+      content += `結束時間 End time: ${endTime}\n`;
+      content += `摘要語言 Summary language: ${languageType}\n`;
+      content += `生成時間 Generation time: ${formatDateTime(new Date().toISOString())}\n\n`;
+      content += `${'='.repeat(60)}\n\n`;
+
+      content += `課程摘要 Summary:\n\n`;
+      content += summaryText;
+      
+      return content;
+    }
+
+    // 輔助函數
+    function getSummaryText() {
+      return window.currentSummaryText || null;
+    }
+
+    function getSelectedTranslationLanguage() {
+      const languageSelect = document.getElementById('export-translation-language');
+      return languageSelect ? languageSelect.value : null;
+    }
+
+    function getSelectedFileFormat() {
+      const formatSelect = document.getElementById('export-file-format');
+      return formatSelect ? formatSelect.value : 'txt';
+    }
+
+    function getExportTypeName(type) {
+      const typeNames = {
+        'original': '原文課程',
+        'original-summary': '原文摘要',
+        'translated': '翻譯課程',
+        'translated-summary': '翻譯摘要',
+        'bilingual': '雙語對照'
+      };
+      return typeNames[type] || type;
+    }
+
+    function getTimestamp() {
+      return new Date().toISOString().slice(0, 19).replace(/[:-]/g, '');
+    }
+
+    async function downloadFile(content, baseFilename, format, documentTitle = '') {
+      const safeFilename = baseFilename.replace(/[<>:"/\\|?*]/g, '_').substring(0, 100);
+      
+      switch (format) {
+        case 'txt':
+          downloadTextFile(content, `${safeFilename}.txt`);
+          break;
+        case 'docx':
+          await downloadWordFile(content, `${safeFilename}.docx`, documentTitle);
+          break;
+        case 'pdf':
+          await downloadPDFFile(content, `${safeFilename}.pdf`, documentTitle);
+          break;
+        default:
+          downloadTextFile(content, `${safeFilename}.txt`);
+      }
+    }
+
+    function downloadTextFile(content, filename) {
+      try {
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        }, 100);
+        
+      } catch (error) {
+        console.error('❌ 檔案下載失敗:', error);
+        throw new Error('檔案下載失敗: ' + error.message);
+      }
+    }
+
+    async function downloadWordFile(content, filename, title = '') {
+      try {
+        if (typeof htmlDocx === 'undefined') {
+          console.warn('⚠️ Word 功能不可用，使用文字檔案替代');
+          downloadTextFile(content, filename.replace('.docx', '.txt'));
+          return;
+        }
+        
+        const htmlContent = convertTextToHTML(content, title);
+        const docx = htmlDocx.asBlob(htmlContent);
+        saveAs(docx, filename);
+        
+      } catch (error) {
+        console.error('❌ Word 檔案生成失敗:', error);
+        downloadTextFile(content, filename.replace('.docx', '.txt'));
+      }
+    }
+    
+    async function downloadPDFFile(content, filename, title = '') {
+      try {
+        console.log('📄 使用 HTML to PDF 方法生成中文 PDF...');
+        
+        // 創建一個隱藏的 iframe 來生成 PDF
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.left = '-9999px';
+        iframe.style.width = '794px'; // A4 寬度
+        iframe.style.height = '1123px'; // A4 高度
+        document.body.appendChild(iframe);
+        
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        
+        // 創建包含中文的 HTML 內容
+        const htmlContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>${title}</title>
+            <style>
+              @page {
+                size: A4;
+                margin: 2cm;
+              }
+              body {
+                font-family: "Microsoft JhengHei", "微軟正黑體", "PingFang TC", "Helvetica Neue", Arial, sans-serif;
+                font-size: 12px;
+                line-height: 1.6;
+                color: #333;
+                margin: 0;
+                background: white;
+              }
+              h1 {
+                color: #2c5aa0;
+                border-bottom: 2px solid #2c5aa0;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+                font-size: 18px;
+              }
+              .header {
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                border: 1px solid #dee2e6;
+              }
+              .content {
+                white-space: pre-wrap;
+                word-wrap: break-word;
+              }
+              .separator {
+                border-top: 1px solid #ccc;
+                margin: 10px 0;
+              }
+              .footer {
+                position: fixed;
+                bottom: 1cm;
+                right: 2cm;
+                font-size: 10px;
+                color: #666;
+              }
+              @media print {
+                body { margin: 0; }
+                .no-print { display: none; }
+              }
+            </style>
+          </head>
+          <body>
+            ${title ? `<h1>${title}</h1>` : ''}
+            <div class="content">${content.replace(/\n/g, '<br>').replace(/={10,}/g, '<div class="separator"></div>')}</div>
+            <div class="footer">Generated by TransMeet System</div>
+          </body>
+          </html>
+        `;
+        
+        iframeDoc.open();
+        iframeDoc.write(htmlContent);
+        iframeDoc.close();
+        
+        // 等待內容載入
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // 觸發列印對話框
+        iframe.contentWindow.print();
+        
+        // 清理
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 2000);
+        
+        showNotification('PDF 列印對話框已開啟，請選擇"另存為 PDF"', 'success');
+        
+      } catch (error) {
+        console.error('❌ HTML to PDF 失敗:', error);
+        await downloadPDFFile_CanvasMethod(content, filename, title);
+      }
+    }
+    function convertTextToHTML(content, title = '') {
+      let html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${title}</title>
+          <style>
+            body { 
+              font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; 
+              line-height: 1.6; 
+              margin: 20px;
+              color: #333;
+            }
+            h1 { 
+              color: #2c5aa0; 
+              border-bottom: 2px solid #2c5aa0; 
+              padding-bottom: 10px;
+            }
+          </style>
+        </head>
+        <body>
+      `;
+      
+      if (title) {
+        html += `<h1>${title}</h1>`;
+      }
+      
+      const lines = content.split('\n');
+      
+      for (let line of lines) {
+        line = line.trim();
+        
+        if (line.includes('='.repeat(10))) {
+          html += '<hr>';
+        } else if (line === '') {
+          html += '<br>';
+        } else {
+          html += `<p>${line}</p>`;
+        }
+      }
+      
+      html += '</body></html>';
+      
+      return html;
+    }
+
+    function showExportProgress(title, message, progress = 0) {
+      const overlay = document.getElementById('export-progress-overlay');
+      const titleEl = document.getElementById('progress-title');
+      const textEl = document.getElementById('progress-text');
+      const fillEl = document.getElementById('progress-fill');
+      
+      titleEl.textContent = title;
+      textEl.textContent = message;
+      fillEl.style.width = `${progress}%`;
+      
+      overlay.style.display = 'flex';
+    }
+
+    function updateExportProgress(message, progress, detail = '') {
+      const textEl = document.getElementById('progress-text');
+      const detailEl = document.getElementById('progress-detail');
+      const fillEl = document.getElementById('progress-fill');
+      
+      if (textEl) textEl.textContent = message;
+      if (detailEl) detailEl.textContent = detail;
+      if (fillEl) fillEl.style.width = `${progress}%`;
+    }
+
+    function hideExportProgress() {
+      const overlay = document.getElementById('export-progress-overlay');
+      overlay.style.display = 'none';
+    }
+
+    function calculateMeetingDuration(meeting) {
+      if (!meeting || !meeting.start_time) {
+        return '未知';
+      }
+      
+      const startTime = new Date(meeting.start_time);
+      const endTime = meeting.end_time ? new Date(meeting.end_time) : new Date();
+      const durationMs = endTime - startTime;
+      
+      if (durationMs < 0) {
+        return '未知';
+      }
+      
+      const hours = Math.floor(durationMs / (1000 * 60 * 60));
+      const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
+      
+      if (hours > 0) {
+        return `${hours} 小時 ${minutes} 分鐘`;
+      } else if (minutes > 0) {
+        return `${minutes} 分鐘 ${seconds} 秒`;
+      } else {
+        return `${seconds} 秒`;
+      }
+    }
+
+    function getLanguageName(code) {
+      if (!code) return '未知語言';
+      
+      const languageNames = {
+        'zh-Hant': '繁體中文',
+        'zh-Hans': '簡體中文',
+        'en': 'English',
+        'ja': '日本語',
+        'ko': '한국어',
+        'es': 'Español',
+        'fr': 'Français',
+        'de': 'Deutsch',
+        'it': 'Italiano',
+        'pt': 'Português',
+        'ru': 'Русский',
+        'ar': 'العربية',
+        'hi': 'हिन्दी',
+        'th': 'ไทย',
+        'vi': 'Tiếng Việt',
+        'id': 'Bahasa Indonesia',
+        'ms': 'Bahasa Melayu',
+        'fa': 'فارسی',
+        'he': 'עברית',
+        'tr': 'Türkçe'
+      };
+      
+      return languageNames[code] || code || '未知語言';
+    }
+
+    function showError(message) {
+      console.error('錯誤:', message);
+      
+      const container = document.getElementById('meeting-details') || 
+                       document.getElementById('transcripts-container') ||
+                       document.querySelector('.container');
+      
+      if (container) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+            </svg>
+            <span>${message}</span>
+          </div>
+        `;
+        
+        const existingError = container.querySelector('.error-message');
+        if (existingError) {
+          existingError.replaceWith(errorDiv);
+        } else {
+          container.prepend(errorDiv);
+        }
+        
+        setTimeout(() => {
+          if (errorDiv.parentNode) {
+            errorDiv.parentNode.removeChild(errorDiv);
+          }
+        }, 5000);
+      }
+      
+      if (typeof showNotification === 'function') {
+        showNotification(message, 'error');
+      }
+    }
+
+    function showNotification(message, type = 'info') {
+      const existingNotification = document.querySelector('.notification');
+      if (existingNotification) {
+        existingNotification.remove();
+      }
+      
+      const notification = document.createElement('div');
+      notification.className = `notification notification-${type}`;
+      notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 9999;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        max-width: 350px;
+        word-wrap: break-word;
+      `;
+      
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+      }, 100);
+      
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, type === 'error' ? 5000 : 3000);
+    }
+
+    // 複製摘要到剪貼板
+    async function copySummaryToClipboard() {
+      if (!window.currentSummaryText) {
+        alert('沒有可複製的摘要');
+        return;
+      }
+      
+      try {
+        await navigator.clipboard.writeText(window.currentSummaryText);
+        showNotification('摘要已複製到剪貼板', 'success');
+      } catch (error) {
+        console.error('複製失敗:', error);
+        const textarea = document.createElement('textarea');
+        textarea.value = window.currentSummaryText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showNotification('摘要已複製到剪貼板', 'success');
+      }
+    }
+
+    // 僅匯出摘要
+    function exportSummaryOnly() {
+      if (!window.currentSummaryText || !currentMeetingData) {
+        alert('沒有可匯出的摘要');
+        return;
+      }
+      
+      const meetingTitle = currentMeetingData.meeting.title || '課程記錄';
+      const summaryData = window.currentSummaryData || {};
+      const timestamp = new Date().toLocaleString('zh-TW');
+      
+      let content = `${meetingTitle} - 課程摘要\n`;
+      content += `${'='.repeat(50)}\n\n`;
+      
+      if (currentMeetingData.meeting) {
+        const meeting = currentMeetingData.meeting;
+        const startTime = new Date(meeting.start_time).toLocaleString('zh-TW');
+        const endTime = meeting.end_time ? new Date(meeting.end_time).toLocaleString('zh-TW') : '未結束';
+        
+        content += `課程標題: ${meeting.title}\n`;
+        content += `開始時間: ${startTime}\n`;
+        content += `結束時間: ${endTime}\n`;
+        content += `課程狀態: ${meeting.end_time ? '已結束' : '進行中'}\n\n`;
+      }
+      
+      content += `${'='.repeat(50)}\n\n`;
+      content += `課程摘要:\n\n`;
+      content += window.currentSummaryText;
+      content += `\n\n${'='.repeat(50)}\n`;
+      content += `報告生成時間: ${timestamp}\n`;
+      content += `系統: 課程課程與摘要系統\n`;
+      
+      const safeTitle = meetingTitle.replace(/[<>:"/\\|?*]/g, '_').substring(0, 50);
+      const fileTimestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `${safeTitle}_摘要_${fileTimestamp}.txt`;
+      
+      downloadTextFile(content, filename);
+      showNotification('摘要已匯出', 'success');
+    }
+
+    // 顯示刪除確認對話框
+    function showDeleteModal() {
+      if (!currentMeetingData || !currentMeetingData.meeting) {
+        alert('沒有可刪除的課程資料');
+        return;
+      }
+
+      const modal = document.getElementById('delete-modal');
+      const confirmText = document.getElementById('delete-confirm-text');
+      confirmText.textContent = `確定要刪除課程「${currentMeetingData.meeting.title}」嗎？`;
+      modal.style.display = 'block';
+    }
+
+    // 隱藏刪除確認對話框
+    function hideDeleteModal() {
+      const modal = document.getElementById('delete-modal');
+      modal.style.display = 'none';
+    }
+
+    // 確認刪除課程
+    async function confirmDeleteMeeting() {
+      if (!currentMeetingData || !currentMeetingData.meeting) {
+        alert('沒有可刪除的課程資料');
+        return;
+      }
+
+      const confirmBtn = document.getElementById('confirm-delete-btn');
+      const originalText = confirmBtn.textContent;
+      confirmBtn.textContent = '刪除中...';
+      confirmBtn.disabled = true;
+
+      try {
+        const meetingId = currentMeetingData.meeting.id;
+        console.log('準備刪除課程:', meetingId);
+        
+        const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('刪除響應錯誤內容:', errorData);
+          
+          try {
+            const jsonError = JSON.parse(errorData);
+            throw new Error(jsonError.error || `HTTP ${response.status}: ${response.statusText}`);
+          } catch (parseError) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+        }
+
+        const result = await response.json();
+        console.log('課程刪除成功:', result);
+        
+        hideDeleteModal();
+        alert('課程記錄已成功刪除');
+        window.location.href = 'index.html';
+        
+      } catch (error) {
+        console.error('刪除課程錯誤:', error);
+        
+        let errorMessage = error.message;
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = '無法連接到服務器，請確認服務器正在運行';
+        }
+        
+        alert(`刪除失敗: 學生無法刪除課程 ${errorMessage}`);
+      } finally {
+        confirmBtn.textContent = originalText;
+        confirmBtn.disabled = false;
+      }
+    }
+
+    function closeExportModal() {
+      const modal = document.getElementById('export-modal');
+      if (modal) {
+        modal.classList.remove('show');
+      }
+  
+      window.exportState.selectedTypes = [];
+      document.querySelectorAll('.export-option.selected').forEach(option => {
+        option.classList.remove('selected');
+      });
+  
+      updateExportButtonState();
+    }
+
+    function toggleExportOptions() {
+      const modal = document.getElementById('export-modal');
+      if (!modal) {
+        console.error('❌ 找不到匯出模態框');
+        return;
+      }
+  
+      if (modal.classList.contains('show')) {
+        closeExportModal();
+      } else {
+        modal.classList.add('show');
+        window.exportState.selectedTypes = [];
+        updateExportButtonState();
+        updateLanguageSelectionVisibility();
+      }
+    }
+
+    // ========================= 額外實用功能 =========================
+
+    // 搜尋課程內容
+    function searchTranscripts() {
+      const searchTerm = prompt('請輸入要搜尋的關鍵字:');
+      if (!searchTerm) return;
+
+      const transcriptItems = document.querySelectorAll('.transcript-item');
+      let foundCount = 0;
+
+      transcriptItems.forEach(item => {
+        const textElement = item.querySelector('.transcript-text');
+        const translationElement = item.querySelector('.translation-text');
+        
+        if (textElement) {
+          const originalText = textElement.textContent || '';
+          const translationText = translationElement?.textContent || '';
+          
+          if (originalText.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              translationText.toLowerCase().includes(searchTerm.toLowerCase())) {
+            item.style.border = '2px solid #ff6b6b';
+            item.style.backgroundColor = '#fff5f5';
+            foundCount++;
+            
+            // 滾動到第一個找到的結果
+            if (foundCount === 1) {
+              item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          } else {
+            item.style.border = '';
+            item.style.backgroundColor = '';
+          }
+        }
+      });
+
+      if (foundCount === 0) {
+        alert(`沒有找到包含 "${searchTerm}" 的內容`);
+      } else {
+        alert(`找到 ${foundCount} 條包含 "${searchTerm}" 的記錄`);
+        
+        // 5秒後清除高亮
+        setTimeout(() => {
+          transcriptItems.forEach(item => {
+            item.style.border = '';
+            item.style.backgroundColor = '';
+          });
+        }, 5000);
+      }
+    }
+
+    // 複製課程內容
+    function copyTranscriptContent(index) {
+      if (!currentMeetingData?.transcripts || !currentMeetingData.transcripts[index]) {
+        alert('無法複製內容');
+        return;
+      }
+
+      const transcript = currentMeetingData.transcripts[index];
+      const time = formatDateTime(transcript.timestamp);
+      const content = `[${time}] ${transcript.speaker}: ${transcript.original_text}`;
+
+      navigator.clipboard.writeText(content).then(() => {
+        showNotification('內容已複製到剪貼板', 'success');
+      }).catch(() => {
+        // 備用方法
+        const textarea = document.createElement('textarea');
+        textarea.value = content;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showNotification('內容已複製到剪貼板', 'success');
+      });
+    }
+
+    // 分享課程
+    function shareMeeting() {
+      if (!currentMeetingData?.meeting) {
+        alert('沒有可分享的課程資料');
+        return;
+      }
+
+      const meeting = currentMeetingData.meeting;
+      const shareUrl = window.location.href;
+      const shareText = `課程分享：${meeting.title}\n開始時間：${formatDateTime(meeting.start_time)}\n查看詳情：${shareUrl}`;
+
+      if (navigator.share) {
+        navigator.share({
+          title: `課程分享 - ${meeting.title}`,
+          text: shareText,
+          url: shareUrl
+        }).catch(console.error);
+      } else {
+        navigator.clipboard.writeText(shareText).then(() => {
+          showNotification('分享連結已複製到剪貼板', 'success');
+        }).catch(() => {
+          prompt('請複製以下分享內容：', shareText);
+        });
+      }
+    }
+
+    // 打印課程記錄
+    function printMeeting() {
+      if (!currentMeetingData) {
+        alert('沒有可打印的課程資料');
+        return;
+      }
+
+      const meeting = currentMeetingData.meeting;
+      const transcripts = currentMeetingData.transcripts || [];
+
+      let printContent = `
+        <html>
+        <head>
+          <title>課程記錄 Class record - ${meeting.title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+            h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            .meta { background: #f5f5f5; padding: 15px; margin: 20px 0; border-radius: 5px; }
+            .transcript { margin: 20px 0; padding: 15px; border-left: 3px solid #007bff; }
+            .speaker { font-weight: bold; color: #007bff; }
+            .time { color: #666; font-size: 0.9em; }
+            @media print { body { margin: 0; } }
+          </style>
+        </head>
+        <body>
+          <h1>${meeting.title}</h1>
+          <div class="meta">
+            <p><strong>開始時間 Start time：</strong>${formatDateTime(meeting.start_time)}</p>
+            <p><strong>結束時間 End time：</strong>${meeting.end_time ? formatDateTime(meeting.end_time) : '未結束'}</p>
+            <p><strong>課程記錄 Records count：</strong>${transcripts.length} 條</p>
+            <p><strong>打印時間 Generation time：</strong>${new Date().toLocaleString('zh-TW')}</p>
+          </div>
+      `;
+
+      if (transcripts.length > 0) {
+        printContent += '<h2>課程內容 Class content</h2>';
+        transcripts.forEach((transcript, index) => {
+          printContent += `
+            <div class="transcript">
+              <div class="speaker">${transcript.speaker}</div>
+              <div class="time">${formatDateTime(transcript.timestamp)}</div>
+              <div>${transcript.original_text}</div>
+            </div>
+          `;
+        });
+      }
+
+      printContent += '</body></html>';
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    // 顯示課程統計
+    function showTranscriptStats() {
+      if (!currentMeetingData?.transcripts) {
+        alert('沒有課程記錄可分析');
+        return;
+      }
+
+      const transcripts = currentMeetingData.transcripts;
+      const speakerStats = {};
+      const languageStats = {};
+      let totalWords = 0;
+
+      transcripts.forEach(transcript => {
+        const speaker = transcript.speaker || '未知發言人';
+        const language = transcript.original_language || 'unknown';
+        const wordCount = transcript.original_text ? transcript.original_text.split(/\s+/).length : 0;
+
+        speakerStats[speaker] = (speakerStats[speaker] || 0) + 1;
+        languageStats[language] = (languageStats[language] || 0) + 1;
+        totalWords += wordCount;
+      });
+
+      const speakerList = Object.entries(speakerStats)
+        .sort((a, b) => b[1] - a[1])
+        .map(([speaker, count]) => `${speaker}: ${count} 次發言`)
+        .join('\n');
+
+      const languageList = Object.entries(languageStats)
+        .map(([lang, count]) => `${getLanguageName(lang)}: ${count} 條記錄`)
+        .join('\n');
+
+      const stats = `
+課程統計資訊：
+
+📊 基本統計：
+• 總發言次數：${transcripts.length} 次
+• 估計總字數：${totalWords} 字
+• 發言人數量：${Object.keys(speakerStats).length} 人
+• 使用語言：${Object.keys(languageStats).length} 種
+
+👥 發言人統計：
+${speakerList}
+
+🌍 語言統計：
+${languageList}
+      `;
+
+      alert(stats);
+    }
+
+   
+      
+
+      // 添加快速按鈕樣式
+      const style = document.createElement('style');
+      style.textContent = `
+        .quick-btn {
+          background: white;
+          border: 1px solid #ced4da;
+          border-radius: 4px;
+          padding: 6px 12px;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .quick-btn:hover {
+          background: #e9ecef;
+          border-color: #adb5bd;
+        }
+      `;
+      document.head.appendChild(style);
+
+      
+    
+
+    // 添加課程項目的右鍵菜單
+    function addTranscriptContextMenu() {
+      document.addEventListener('contextmenu', (e) => {
+        const transcriptItem = e.target.closest('.transcript-item');
+        if (!transcriptItem) return;
+
+        e.preventDefault();
+        
+        const index = parseInt(transcriptItem.dataset.index);
+        if (isNaN(index)) return;
+
+        // 移除現有菜單
+        const existingMenu = document.querySelector('.context-menu');
+        if (existingMenu) existingMenu.remove();
+
+        // 創建右鍵菜單
+        const menu = document.createElement('div');
+        menu.className = 'context-menu';
+        menu.style.cssText = `
+          position: fixed;
+          left: ${e.clientX}px;
+          top: ${e.clientY}px;
+          background: white;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          z-index: 10000;
+          min-width: 150px;
+        `;
+
+        menu.innerHTML = `
+          <div class="menu-item" onclick="copyTranscriptContent(${index})">📋 複製內容</div>
+          <div class="menu-item" onclick="translateSingleTranscript(${index})">🌐 單獨翻譯</div>
+          <div class="menu-item" onclick="highlightTranscript(${index})">🔆 高亮標記</div>
+        `;
+
+        // 添加菜單項樣式
+        const menuStyle = document.createElement('style');
+        menuStyle.textContent = `
+          .menu-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+          }
+          .menu-item:hover {
+            background: #f8f9fa;
+          }
+          .menu-item:last-child {
+            border-bottom: none;
+          }
+        `;
+        document.head.appendChild(menuStyle);
+
+        document.body.appendChild(menu);
+
+        // 點擊其他地方關閉菜單
+        setTimeout(() => {
+          document.addEventListener('click', () => {
+            menu.remove();
+            menuStyle.remove();
+          }, { once: true });
+        }, 0);
+      });
+    }
+
+    // 單獨翻譯某條記錄
+    async function translateSingleTranscript(index) {
+      if (!currentMeetingData?.transcripts || !currentMeetingData.transcripts[index]) {
+        alert('無法翻譯此記錄');
+        return;
+      }
+
+      const targetLanguage = prompt('請輸入目標語言代碼 (例如: en, ja, ko):');
+      if (!targetLanguage) return;
+
+      const transcript = currentMeetingData.transcripts[index];
+      const transcriptItem = document.querySelector(`.transcript-item[data-index="${index}"]`);
+      const translationElement = transcriptItem?.querySelector('.translation-text');
+
+      if (!translationElement) return;
+
+      translationElement.innerHTML = `
+        <span class="translation-loading">
+          <span class="loading-spinner"></span> 正在翻譯...
+        </span>
+      `;
+      translationElement.classList.add('show');
+
+      try {
+        const translation = await translateText(
+          transcript.original_text,
+          transcript.original_language,
+          targetLanguage
+        );
+
+        translationElement.innerHTML = `<strong>翻譯 (${getLanguageName(targetLanguage)}):</strong> ${translation}`;
+        showNotification('翻譯完成', 'success');
+      } catch (error) {
+        translationElement.innerHTML = `<strong>翻譯失敗:</strong> ${error.message}`;
+        showNotification('翻譯失敗', 'error');
+      }
+    }
+
+    // 高亮標記
+    function highlightTranscript(index) {
+      const transcriptItem = document.querySelector(`.transcript-item[data-index="${index}"]`);
+      if (!transcriptItem) return;
+
+      const isHighlighted = transcriptItem.classList.contains('highlighted');
+      
+      if (isHighlighted) {
+        transcriptItem.classList.remove('highlighted');
+        transcriptItem.style.background = '';
+        transcriptItem.style.border = '';
+      } else {
+        transcriptItem.classList.add('highlighted');
+        transcriptItem.style.background = '#fff3cd';
+        transcriptItem.style.border = '2px solid #ffc107';
+      }
+    }
+
+    // 重新載入所有翻譯（完整實現）
+    async function refreshAllTranslations() {
+      if (!currentMeetingData?.transcripts) {
+        alert('沒有課程記錄可重新載入');
+        return;
+      }
+
+      if (!confirm('確定要清除並重新載入所有翻譯嗎？這可能需要一些時間。')) {
+        return;
+      }
+
+      // 清空翻譯快取
+      translationCache.clear();
+      
+      // 隱藏所有翻譯
+      document.querySelectorAll('.translation-text').forEach(element => {
+        element.classList.remove('show');
+      });
+
+      // 重新觸發當前選擇的語言翻譯
+      const viewLanguage = document.getElementById('view-target-language').value;
+      if (viewLanguage) {
+        showNotification('正在重新載入翻譯...', 'info');
+        const event = { target: { value: viewLanguage } };
+        await handleViewLanguageChange(event);
+        showNotification('翻譯重新載入完成', 'success');
+      } else {
+        showNotification('翻譯快取已清空', 'success');
+      }
+    }
+
+    // 自動保存草稿功能
+    function enableAutoSave() {
+      // 監聽用戶操作，自動保存狀態
+      setInterval(() => {
+        if (currentMeetingData) {
+          const state = {
+            meetingId: currentMeetingData.meeting?.id,
+            selectedLanguage: document.getElementById('view-target-language')?.value,
+            summaryLanguage: document.getElementById('summary-language')?.value,
+            lastViewed: new Date().toISOString()
+          };
+          
+          localStorage.setItem(`meeting_state_${state.meetingId}`, JSON.stringify(state));
+        }
+      }, 30000); // 每30秒保存一次
+    }
+
+    // 恢復上次的狀態
+    function restoreLastState() {
+      const meetingId = getMeetingIdFromUrl();
+      if (!meetingId) return;
+
+      const savedState = localStorage.getItem(`meeting_state_${meetingId}`);
+      if (!savedState) return;
+
+      try {
+        const state = JSON.parse(savedState);
+        
+        // 恢復語言選擇
+        if (state.selectedLanguage) {
+          const langSelector = document.getElementById('view-target-language');
+          if (langSelector) langSelector.value = state.selectedLanguage;
+        }
+        
+        if (state.summaryLanguage) {
+          const summarySelector = document.getElementById('summary-language');
+          if (summarySelector) summarySelector.value = state.summaryLanguage;
+        }
+        
+        console.log('✅ 已恢復上次瀏覽狀態');
+      } catch (error) {
+        console.warn('恢復狀態失敗:', error);
+      }
+    }
+
+    // 鍵盤快捷鍵
+    function setupKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        // Ctrl+F: 搜尋
+        if (e.ctrlKey && e.key === 'f' && !e.shiftKey) {
+          e.preventDefault();
+          searchTranscripts();
+        }
+        
+        // Ctrl+S: 匯出
+        if (e.ctrlKey && e.key === 's') {
+          e.preventDefault();
+          toggleExportOptions();
+        }
+        
+        // Ctrl+P: 打印
+        if (e.ctrlKey && e.key === 'p') {
+          e.preventDefault();
+          printMeeting();
+        }
+        
+        // Escape: 關閉模態
+        if (e.key === 'Escape') {
+          closeExportModal();
+          hideDeleteModal();
+        }
+      });
+    }
+
+    // 頁面可見性 API - 當用戶離開頁面時暫停操作
+    function setupVisibilityAPI() {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          // 頁面隱藏時的操作
+          console.log('🔄 頁面已隱藏，暫停背景操作');
+        } else {
+          // 頁面可見時的操作
+          console.log('👁️ 頁面已可見，恢復操作');
+        }
+      });
+    }
+
+    // 增強版錯誤處理
+    window.addEventListener('error', (e) => {
+      console.error('全域錯誤:', e.error);
+      
+      // 不要為小錯誤打擾用戶
+      if (e.error?.message?.includes('ResizeObserver') || 
+          e.error?.message?.includes('Script error')) {
+        return;
+      }
+      
+      showNotification('頁面發生錯誤，請重新整理頁面', 'error');
+    });
+
+    // 網路狀態監控
+    function setupNetworkMonitoring() {
+      window.addEventListener('online', () => {
+        showNotification('網路連接已恢復', 'success');
+      });
+
+      window.addEventListener('offline', () => {
+        showNotification('網路連接已斷開', 'error');
+      });
+    }
+
+    // 延遲初始化功能（在主要內容載入後）
+    function initializeEnhancedFeatures() {
+      setTimeout(() => {
+        addTranscriptContextMenu();
+        enableAutoSave();
+        restoreLastState();
+        setupKeyboardShortcuts();
+        setupVisibilityAPI();
+        setupNetworkMonitoring();
+        
+        console.log('🎉 增強功能初始化完成');
+      }, 1000);
+    }
+
+    // 在頁面載入完成後初始化增強功能
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeEnhancedFeatures();
+    });
+
+    console.log('📄 課程詳情頁面 JavaScript 完整載入完成');
+    console.log('🔧 支援的完整功能:');
+    console.log('  ✅ 原文轉錄匯出 (TXT/DOCX/PDF)');
+    console.log('  ✅ AI 摘要生成與匯出');
+    console.log('  ✅ 多語言翻譯與快取');
+    console.log('  ✅ 雙語對照匯出');
+    console.log('  ✅ 課程刪除功能');
+    console.log('  ✅ 內容搜尋與高亮');
+    console.log('  ✅ 發言統計分析');
+    console.log('  ✅ 課程分享與打印');
+    console.log('  ✅ 右鍵菜單操作');
+    console.log('  ✅ 鍵盤快捷鍵 (Ctrl+F, Ctrl+S, Ctrl+P)');
+    console.log('  ✅ 自動狀態保存');
+    console.log('  ✅ 網路狀態監控');
+    console.log('  ✅ 增強錯誤處理');
+    console.log('  ⚠️ PDF 中文支持有限，建議使用 TXT 或 DOCX');
+    
+  </script>
+</body>
+</html>

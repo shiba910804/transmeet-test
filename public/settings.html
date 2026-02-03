@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>TransClass - 設定</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 60px 0 0 0;
+      background-color: #f5f5f5;
+    }
+    
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #0a2463;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+    
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .logo {
+      font-weight: bold;
+      font-size: 20px;
+    }
+    
+    .container {
+      margin: 0 auto;
+      max-width: 800px;
+      padding: 20px;
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+    
+    .settings-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+    
+    .settings-section {
+      margin-bottom: 30px;
+    }
+    
+    .settings-section h2 {
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #555;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #0a2463;
+      box-shadow: 0 0 0 3px rgba(10,36,99,0.1);
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: #0a2463;
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2c7db3;
+    }
+    
+    .btn-primary:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+    
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: #0a2463;
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    .switch-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .language-selector {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .danger-zone {
+      border: 1px solid #f5c6cb;
+      background-color: #f8d7da;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+    }
+    
+    .danger-zone h3 {
+      color: #721c24;
+      margin-top: 0;
+    }
+    
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+    }
+    
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+    
+    .success-message {
+      background-color: #d4edda;
+      color: #155724;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      border: 1px solid #c3e6cb;
+      display: none;
+    }
+    
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      border: 1px solid #f5c6cb;
+      display: none;
+    }
+    
+    .language-preview {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="nav-left">
+      <div class="logo">TransClass</div>
+      <a href="index.html" class="btn btn-secondary" style="text-decoration: none;">← 返回</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>設定</h1>
+    
+    <div class="success-message" id="success-message"></div>
+    <div class="error-message" id="error-message"></div>
+    
+    <div class="settings-card">
+      <div class="settings-section">
+        <h2>個人資料</h2>
+        
+        <div class="form-group">
+          <label for="username">使用者名稱</label>
+          <input type="text" id="username" class="form-control" value="使用者名稱">
+        </div>
+        
+        <div class="form-group">
+          <label for="email">電子郵件</label>
+          <input type="email" id="email" class="form-control" value="user@example.com">
+        </div>
+        
+        <button class="btn btn-primary" onclick="updateProfile()">更新個人資料</button>
+      </div>
+      
+      <div class="settings-section">
+        <h2>語言偏好設定</h2>
+        
+        <div class="form-group">
+          <label for="preferred-language">預設翻譯語言</label>
+          <select id="preferred-language" class="form-control language-selector" onchange="previewLanguageChange()">
+            <option value="zh-Hant">繁體中文</option>
+            <optgroup label="歐洲語言">
+              <option value="en">English</option>
+              <option value="es">Español (西班牙文)</option>
+              <option value="fr">Français (法文)</option>
+              <option value="de">Deutsch (德文)</option>
+              <option value="it">Italiano (義大利文)</option>
+              <option value="pt">Português (葡萄牙文)</option>
+              <option value="ru">Русский (俄文)</option>
+              <option value="nl">Nederlands (荷蘭文)</option>
+              <option value="sv">Svenska (瑞典文)</option>
+              <option value="da">Dansk (丹麥文)</option>
+              <option value="no">Norsk (挪威文)</option>
+              <option value="fi">Suomi (芬蘭文)</option>
+            </optgroup>
+            <optgroup label="亞洲語言">
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="zh-Hans">簡體中文</option>
+              <option value="th">ไทย (泰文)</option>
+              <option value="vi">Tiếng Việt (越南文)</option>
+              <option value="id">Bahasa Indonesia (印尼文)</option>
+              <option value="ms">Bahasa Melayu (馬來文)</option>
+              <option value="my">မြန်မာဘာသာ (緬甸文)</option>
+              <option value="km">ភាសាខ្មែរ (柬埔寨文)</option>
+              <option value="lo">ລາວ (寮文)</option>
+              <option value="hi">हिन्दी (印地文)</option>
+              <option value="bn">বাংলা (孟加拉文)</option>
+              <option value="ta">தமிழ் (泰米爾文)</option>
+              <option value="te">తెలుగు (泰盧固文)</option>
+              <option value="mr">मराठी (馬拉地文)</option>
+              <option value="gu">ગુજરાતી (古吉拉特文)</option>
+              <option value="kn">ಕನ್ನಡ (卡納達文)</option>
+              <option value="ml">മലയാളം (馬拉雅拉姆文)</option>
+              <option value="pa">ਪੰਜਾਬੀ (旁遮普文)</option>
+              <option value="ur">اردو (烏爾都文)</option>
+              <option value="ne">नेपाली (尼泊爾文)</option>
+              <option value="si">සිංහල (僧加羅文)</option>
+            </optgroup>
+            <optgroup label="中東語言">
+              <option value="ar">العربية (阿拉伯文)</option>
+              <option value="fa">فارسی (波斯文)</option>
+              <option value="he">עברית (希伯來文)</option>
+              <option value="tr">Türkçe (土耳其文)</option>
+            </optgroup>
+            <optgroup label="非洲語言">
+              <option value="sw">Kiswahili (斯瓦希里文)</option>
+              <option value="zu">isiZulu (祖魯文)</option>
+              <option value="af">Afrikaans (南非荷蘭文)</option>
+            </optgroup>
+            <optgroup label="其他語言">
+              <option value="pl">Polski (波蘭文)</option>
+              <option value="cs">Čeština (捷克文)</option>
+              <option value="sk">Slovenčina (斯洛伐克文)</option>
+              <option value="hu">Magyar (匈牙利文)</option>
+              <option value="ro">Română (羅馬尼亞文)</option>
+              <option value="bg">Български (保加利亞文)</option>
+              <option value="hr">Hrvatski (克羅埃西亞文)</option>
+              <option value="sl">Slovenščina (斯洛維尼亞文)</option>
+              <option value="et">Eesti (愛沙尼亞文)</option>
+              <option value="lv">Latviešu (拉脫維亞文)</option>
+              <option value="lt">Lietuvių (立陶宛文)</option>
+              <option value="uk">Українська (烏克蘭文)</option>
+              <option value="be">Беларуская (白俄羅斯文)</option>
+            </optgroup>
+          </select>
+          <div class="language-preview" id="language-preview">
+            此設定將影響：
+            <ul style="margin: 5px 0; padding-left: 20px;">
+              <li>課程頁面的預設翻譯語言</li>
+              <li>課程詳情頁面的查看翻譯語言</li>
+              <li>摘要生成的預設語言</li>
+              <li>匯出檔案的預設翻譯語言</li>
+            </ul>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" id="save-language-btn" onclick="saveLanguagePreference()">儲存語言設定</button>
+      </div>
+      
+      <div class="settings-section">
+        <h2>其他偏好設定</h2>
+        
+        <div class="form-group">
+          <label>主題</label>
+          <select class="form-control">
+            <option value="light" selected>淺色</option>
+            <option value="dark">深色</option>
+            <option value="system">跟隨系統</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <div class="switch-container">
+            <label class="switch">
+              <input type="checkbox" checked>
+              <span class="slider"></span>
+            </label>
+            <span>啟用電子郵件通知</span>
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="savePreferences()">儲存偏好設定</button>
+      </div>
+      
+      <div class="settings-section">
+        <h2>課程設定</h2>
+        
+        <div class="form-group">
+          <div class="switch-container">
+            <label class="switch">
+              <input type="checkbox" checked>
+              <span class="slider"></span>
+            </label>
+            <span>自動儲存轉錄記錄</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div class="switch-container">
+            <label class="switch">
+              <input type="checkbox">
+              <span class="slider"></span>
+            </label>
+            <span>課程結束時自動生成摘要</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="danger-zone">
+        <h3>危險區域</h3>
+        
+        <div class="form-group">
+          <button class="btn btn-danger" onclick="confirmDeleteAccount()">刪除帳號</button>
+          <p style="font-size: 13px; color: #721c24; margin-top: 8px;">
+            警告：此操作將永久刪除您的帳號和所有資料，無法復原。
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 全域變數
+    let currentUser = null;
+    let authToken = null;
+    
+    // 從 localStorage 載入用戶資料
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('設定頁面載入完成');
+      
+      // 檢查認證狀態
+      authToken = localStorage.getItem('authToken');
+      const userStr = localStorage.getItem('user');
+      
+      if (!authToken || !userStr) {
+        alert('請先登入');
+        window.location.href = 'auth.html';
+        return;
+      }
+      
+      try {
+        currentUser = JSON.parse(userStr);
+        console.log('當前用戶:', currentUser);
+        
+        // 載入用戶資料
+        loadUserProfile();
+        
+        // 載入語言偏好
+        await loadLanguagePreference();
+        
+      } catch (error) {
+        console.error('解析用戶資料錯誤:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        window.location.href = 'auth.html';
+      }
+    });
+    
+    // 載入用戶資料
+    function loadUserProfile() {
+      if (currentUser) {
+        document.getElementById('username').value = currentUser.username || '';
+        document.getElementById('email').value = currentUser.email || '';
+      }
+    }
+    
+    // 載入語言偏好
+    async function loadLanguagePreference() {
+      try {
+        console.log('🌐 載入語言偏好設定...');
+        
+        // 1. 嘗試從 API 獲取
+        const response = await fetch('/api/user/language', {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        let preferredLanguage = null;
+        
+        if (response.ok) {
+          const data = await response.json();
+          preferredLanguage = data.preferredLanguage;
+          console.log('✅ 從 API 獲取語言偏好:', preferredLanguage);
+        } else {
+          console.warn('⚠️ 無法從 API 獲取語言偏好');
+        }
+        
+        // 2. 如果 API 失敗，從本地儲存獲取
+        if (!preferredLanguage) {
+          preferredLanguage = localStorage.getItem('userLanguage') || 'zh-Hant';
+          console.log('📱 從本地儲存獲取語言偏好:', preferredLanguage);
+        }
+        
+        // 3. 設定選擇器的值
+        const languageSelect = document.getElementById('preferred-language');
+        if (languageSelect) {
+          languageSelect.value = preferredLanguage;
+          previewLanguageChange(); // 更新預覽
+        }
+        
+      } catch (error) {
+        console.error('❌ 載入語言偏好失敗:', error);
+        // 設定預設值
+        document.getElementById('preferred-language').value = 'zh-Hant';
+      }
+    }
+    
+    // 預覽語言變更
+    function previewLanguageChange() {
+      const selectedLanguage = document.getElementById('preferred-language').value;
+      const preview = document.getElementById('language-preview');
+      
+      const languageNames = {
+        'zh-Hant': '繁體中文',
+        'zh-Hans': '簡體中文',
+        'en': 'English',
+        'es': 'Español',
+        'fr': 'Français',
+        'de': 'Deutsch',
+        'it': 'Italiano',
+        'pt': 'Português',
+        'ru': 'Русский',
+        'ja': '日本語',
+        'ko': '한국어',
+        'th': 'ไทย',
+        'vi': 'Tiếng Việt',
+        'id': 'Bahasa Indonesia',
+        'ar': 'العربية',
+        'hi': 'हिन्दी'
+      };
+      
+      const languageName = languageNames[selectedLanguage] || selectedLanguage;
+        preview.innerHTML = `已選擇：<strong>${languageName}</strong><br>`;
+    }
+    
+    // 儲存語言偏好
+    async function saveLanguagePreference() {
+      const selectedLanguage = document.getElementById('preferred-language').value;
+      const btn = document.getElementById('save-language-btn');
+      const originalText = btn.textContent;
+      
+      if (!selectedLanguage) {
+        showMessage('請選擇一種語言', true);
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = '儲存中...';
+      
+      try {
+        console.log('🚀 儲存語言偏好:', selectedLanguage);
+        
+        const response = await fetch('/api/user/language', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ language: selectedLanguage })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `儲存失敗 (${response.status})`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ 語言偏好儲存成功:', result);
+        
+        // 更新本地儲存
+        localStorage.setItem('userLanguage', selectedLanguage);
+        
+        // 更新當前用戶資料
+        if (currentUser) {
+          currentUser.preferredLanguage = selectedLanguage;
+          localStorage.setItem('user', JSON.stringify(currentUser));
+        }
+        
+        showMessage('語言偏好已成功儲存！', false);
+        
+      } catch (error) {
+        console.error('❌ 儲存語言偏好失敗:', error);
+        showMessage('儲存失敗: ' + error.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+    
+    // 顯示訊息
+    function showMessage(message, isError = false) {
+      const successEl = document.getElementById('success-message');
+      const errorEl = document.getElementById('error-message');
+      
+      // 隱藏所有訊息
+      successEl.style.display = 'none';
+      errorEl.style.display = 'none';
+      
+      if (isError) {
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+      } else {
+        successEl.textContent = message;
+        successEl.style.display = 'block';
+      }
+      
+      // 自動隱藏成功訊息
+      if (!isError) {
+        setTimeout(() => {
+          successEl.style.display = 'none';
+        }, 3000);
+      }
+    }
+    
+    function confirmDeleteAccount() {
+      if (confirm('確定要永久刪除您的帳號嗎？此操作無法撤銷！')) {
+        alert('帳號刪除功能將在確認後執行');
+        // 實際刪除帳號的 API 呼叫會在這裡
+      }
+    }
+    
+    // 更新個人資料
+    function updateProfile() {
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      
+      // 這裡會呼叫 API 更新用戶資料
+      console.log('更新個人資料:', { username, email });
+      showMessage('個人資料已更新');
+    }
+    
+    // 儲存偏好設定
+    function savePreferences() {
+      // 這裡會儲存用戶偏好設定
+      console.log('偏好設定已儲存');
+      showMessage('偏好設定已儲存');
+    }
+    
+    // 儲存課程設定
+    function saveMeetingSettings() {
+      // 這裡會儲存課程相關設定
+      console.log('課程設定已儲存');
+      showMessage('課程設定已儲存');
+    }
+  </script>
+</body>
+</html>

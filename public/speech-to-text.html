@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>語音辨識與紀錄系統</title>
+  <script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@latest/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js"></script>
+  <style>
+    /* Translation text style */
+    .translation-text {
+      color: #666;
+      font-style: italic;
+      margin-top: 5px;
+      padding-left: 10px;
+      border-left: 2px solid #ddd;
+    }
+    
+    /* Language selector style */
+    .language-selector {
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      background-color: white;
+    }
+    
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 60px 20px 20px 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #0a2463;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+    
+    .logo {
+      font-weight: bold;
+      font-size: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    
+    .card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+    
+    .card-title {
+      font-size: 18px;
+      margin: 0;
+    }
+    
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    
+    button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    
+    .primary-button {
+      background-color: #4CAF50;
+      color: white;
+    }
+    
+    .primary-button:hover {
+      background-color: #45a049;
+    }
+    
+    .secondary-button {
+      background-color: #2196F3;
+      color: white;
+    }
+    
+    .secondary-button:hover {
+      background-color: #0b7dda;
+    }
+    
+    .danger-button {
+      background-color: #f44336;
+      color: white;
+    }
+    
+    .danger-button:hover {
+      background-color: #d32f2f;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    #system-log {
+      height: 200px;
+      overflow-y: auto;
+      background-color: #f9f9f9;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+    
+    #transcription-result {
+      min-height: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+      padding: 15px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    
+    .transcript-entry {
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .transcript-time {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    
+    .transcript-text {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .status-active {
+      background-color: #4CAF50;
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
+    }
+    
+    .status-inactive {
+      background-color: #f44336;
+    }
+    
+    .status-connecting {
+      background-color: #FFC107;
+    }
+    
+    .meeting-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .meeting-status {
+      display: flex;
+      align-items: center;
+      margin-left: 20px;
+    }
+    
+    .meeting-title {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+    
+    .meeting-time {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .error { color: #f44336; }
+    .success { color: #4CAF50; }
+    .info { color: #2196F3; }
+    .warning { color: #FF9800; }
+    
+    /* 報表樣式 */
+    .transcript-report {
+      padding: 20px;
+      background-color: white;
+      border: 1px solid #ddd;
+      margin-top: 20px;
+      max-width: 800px;
+    }
+    
+    .report-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .report-title {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    .report-meta {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .report-content {
+      line-height: 1.6;
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1001;
+    }
+    
+    .modal-content {
+      position: relative;
+      background-color: white;
+      margin: 10% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    
+    .input-group {
+      margin-bottom: 15px;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    .input-group input, .input-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    /* 語言標籤樣式 */
+    .language-tag {
+      display: inline-block;
+      background-color: #e1f5fe;
+      color: #0277bd;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="logo">speech-to-text</div>
+  </div>
+
+  <div class="container">
+    <div class="card full-width">
+      <div class="card-header">
+        <h2 class="card-title">會議資訊</h2>
+      </div>
+      <div class="meeting-info">
+        <div>
+          <div class="meeting-title" id="meeting-title">未開始會議</div>
+          <div class="meeting-time" id="meeting-time"></div>
+        </div>
+        <div class="meeting-status">
+          <div class="status-indicator status-inactive" id="meeting-status-indicator"></div>
+          <span id="meeting-status-text">未開始</span>
+        </div>
+      </div>
+      <div class="button-group">
+        <button id="start-meeting-btn" class="primary-button">開始新會議</button>
+        <button id="end-meeting-btn" class="danger-button" disabled>結束會議</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">語音識別控制</h2>
+      </div>
+      <div class="meeting-status">
+        <div class="status-indicator status-inactive" id="recognition-status-indicator"></div>
+        <span id="recognition-status-text">未啟動</span>
+      </div>
+      <div class="button-group">
+        <button id="test-connection-button" class="secondary-button">測試連接</button>
+        <button id="start-button" class="primary-button" disabled>開始錄音</button>
+        <button id="stop-button" class="danger-button" disabled>停止錄音</button>
+        <button id="reset-language-button" class="secondary-button" disabled>重置語言識別</button>
+        <select id="target-language" class="language-selector">
+          <option value="zh-Hant">翻譯成繁體中文</option>
+          <option value="en">Translate to English</option>
+          <option value="ja">日本語に翻訳</option>
+          <option value="id">Terjemahkan ke Bahasa Indonesia</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">系統日誌</h2>
+      </div>
+      <div id="system-log"></div>
+    </div>
+
+    <div class="card full-width">
+      <div class="card-header">
+        <h2 class="card-title">識別結果</h2>
+        <div class="button-group">
+          <button id="copy-result-btn" class="secondary-button">複製結果</button>
+          <button id="save-result-btn" class="primary-button">儲存結果</button>
+          <button id="clear-result-btn" class="danger-button">清除結果</button>
+        </div>
+      </div>
+      <div id="transcription-result"></div>
+    </div>
+  </div>
+
+  <!-- 會議開始對話框 -->
+  <div id="start-meeting-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="close-start-meeting">&times;</span>
+      <h2>開始新會議</h2>
+      <div class="input-group">
+        <label for="new-meeting-title">會議標題:</label>
+        <input type="text" id="new-meeting-title" placeholder="請輸入會議標題">
+      </div>
+      <div class="button-group">
+        <button id="confirm-start-meeting" class="primary-button">開始會議</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 儲存結果對話框 -->
+  <div id="save-result-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="close-save-result">&times;</span>
+      <h2>儲存會議記錄</h2>
+      <div class="input-group">
+        <label for="save-title">標題:</label>
+        <input type="text" id="save-title" placeholder="請輸入標題">
+      </div>
+      <div class="input-group">
+        <label for="save-notes">備註:</label>
+        <textarea id="save-notes" placeholder="請輸入備註" rows="3"></textarea>
+      </div>
+      <div class="button-group">
+        <button id="confirm-save-result" class="primary-button">儲存</button>
+        <button id="download-result" class="secondary-button">下載文字檔</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    const API_BASE_URL = '';
+    // Translation configuration
+    const translationConfig = {
+      targetLanguage: 'zh-Hant' // Default to Traditional Chinese
+    };
+    
+    let recognizer;
+    let speechConfig;
+    let isRecognizing = false;
+    let currentMeeting = {
+      id: null,
+      title: '未開始會議',
+      startTime: null,
+      endTime: null,
+      transcripts: []
+    };
+    
+    // 自動語言偵測使用的語言列表
+    let supportedLanguages = ['zh-TW', 'en-US', 'ja-JP', 'id-ID'];
+    
+    // DOM 元素
+    const startMeetingBtn = document.getElementById('start-meeting-btn');
+    const endMeetingBtn = document.getElementById('end-meeting-btn');
+    const testConnectionButton = document.getElementById('test-connection-button');
+    const startButton = document.getElementById('start-button');
+    const stopButton = document.getElementById('stop-button');
+    const resetLanguageButton = document.getElementById('reset-language-button');
+    const systemLogDiv = document.getElementById('system-log');
+    const transcriptionResultDiv = document.getElementById('transcription-result');
+    const meetingTitleElement = document.getElementById('meeting-title');
+    const meetingTimeElement = document.getElementById('meeting-time');
+    const meetingStatusIndicator = document.getElementById('meeting-status-indicator');
+    const meetingStatusText = document.getElementById('meeting-status-text');
+    const recognitionStatusIndicator = document.getElementById('recognition-status-indicator');
+    const recognitionStatusText = document.getElementById('recognition-status-text');
+    const copyResultBtn = document.getElementById('copy-result-btn');
+    const saveResultBtn = document.getElementById('save-result-btn');
+    const clearResultBtn = document.getElementById('clear-result-btn');
+    
+    // 對話框元素
+    const startMeetingModal = document.getElementById('start-meeting-modal');
+    const closeStartMeeting = document.getElementById('close-start-meeting');
+    const confirmStartMeeting = document.getElementById('confirm-start-meeting');
+    const newMeetingTitle = document.getElementById('new-meeting-title');
+    const saveResultModal = document.getElementById('save-result-modal');
+    const closeSaveResult = document.getElementById('close-save-result');
+    const confirmSaveResult = document.getElementById('confirm-save-result');
+    const downloadResult = document.getElementById('download-result');
+    const saveTitle = document.getElementById('save-title');
+    const saveNotes = document.getElementById('save-notes');
+    
+    // 記錄訊息到系統日誌
+    function logMessage(message, type = 'info') {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString();
+      
+      const logEntry = document.createElement('div');
+      logEntry.className = type;
+      logEntry.innerHTML = `<span style="color:#888;">[${timeStr}]</span> ${message}`;
+      
+      systemLogDiv.appendChild(logEntry);
+      systemLogDiv.scrollTop = systemLogDiv.scrollHeight; // 自動滾動到底部
+    }
+    
+    // 獲取語言名稱
+    function getLanguageName(languageCode) {
+      const languageMap = {
+        'zh-TW': '繁體中文',
+        'en-US': '英文 (美國)',
+        'ja-JP': '日文',
+        'id-ID': '印尼文',
+      };
+      
+      return languageMap[languageCode] || languageCode;
+    }
+    
+    // 添加轉錄結果
+    async function addTranscriptionEntry(text, detectedLanguage, isFinal = true) {
+      // 創建一個新的條目
+      const entry = document.createElement('div');
+      entry.className = 'transcript-entry';
+      
+      // 添加時間戳
+      const now = new Date();
+      const timestamp = now.toLocaleTimeString();
+      const timeElement = document.createElement('div');
+      timeElement.className = 'transcript-time';
+      timeElement.textContent = timestamp;
+      
+      // 添加語言標籤，如果有偵測到語言
+      if (detectedLanguage) {
+        const languageName = getLanguageName(detectedLanguage);
+        timeElement.innerHTML += `<span class="language-tag">偵測到: ${languageName}</span>`;
+      }
+      
+      // 添加文字內容
+      const textElement = document.createElement('div');
+      textElement.className = 'transcript-text';
+      textElement.textContent = text;
+      
+      // 將元素添加到條目中
+      entry.appendChild(timeElement);
+      entry.appendChild(textElement);
+      
+      // 將條目添加到結果區域
+      transcriptionResultDiv.appendChild(entry);
+      transcriptionResultDiv.scrollTop = transcriptionResultDiv.scrollHeight;
+      
+      // 如果是最終結果，則保存到會議記錄中
+      if (isFinal && text.trim() !== '') {
+        const transcriptEntry = {
+          timestamp: now.toISOString(),
+          text: text,
+          language: detectedLanguage || 'unknown',
+          speaker: '使用者'
+        };
+        
+        currentMeeting.transcripts.push(transcriptEntry);
+        
+        // 如果需要翻譯且不是目標語言
+        if (detectedLanguage && detectedLanguage !== translationConfig.targetLanguage) {
+          try {
+            const translation = await translateText(text, detectedLanguage);
+            if (translation) {
+              const translationElement = document.createElement('div');
+              translationElement.className = 'translation-text';
+              translationElement.textContent = `${translation}`;
+              entry.appendChild(translationElement);
+              
+              transcriptEntry.translation = translation;
+              transcriptEntry.translationLanguage = translationConfig.targetLanguage;
+            }
+          } catch (error) {
+            logMessage('翻譯失敗: ' + error.message, 'error');
+          }
+        }
+      }
+      
+      return entry;
+    }
+    
+    // 更新最近的轉錄條目
+    function updateLastTranscriptionEntry(text, detectedLanguage) {
+  // Only update the temporary (interim) result
+  // This ensures we don't modify entries that already have translations or final text
+  const entries = transcriptionResultDiv.querySelectorAll('.transcript-entry');
+  
+  // If we have a current interim entry, update it
+  if (entries.length > 0 && entries[entries.length - 1].classList.contains('interim-result')) {
+    const lastEntry = entries[entries.length - 1];
+    const textElement = lastEntry.querySelector('.transcript-text');
+    if (textElement) {
+      textElement.textContent = text;
+    }
+    
+    // 更新語言標籤
+    if (detectedLanguage) {
+      const timeElement = lastEntry.querySelector('.transcript-time');
+      const existingTag = timeElement.querySelector('.language-tag');
+      
+      if (existingTag) {
+        const languageName = getLanguageName(detectedLanguage);
+        existingTag.textContent = `偵測到: ${languageName}`;
+      } else {
+        const languageName = getLanguageName(detectedLanguage);
+        const langTag = document.createElement('span');
+        langTag.className = 'language-tag';
+        langTag.textContent = `偵測到: ${languageName}`;
+        timeElement.appendChild(langTag);
+      }
+    }
+  } else {
+    // Create a new interim entry if no interim entry exists
+    const entry = document.createElement('div');
+    entry.className = 'transcript-entry interim-result';
+    
+    // 添加時間戳
+    const now = new Date();
+    const timestamp = now.toLocaleTimeString();
+    const timeElement = document.createElement('div');
+    timeElement.className = 'transcript-time';
+    timeElement.textContent = timestamp;
+    
+    // 添加語言標籤，如果有偵測到語言
+    if (detectedLanguage) {
+      const languageName = getLanguageName(detectedLanguage);
+      timeElement.innerHTML += `<span class="language-tag">偵測到: ${languageName}</span>`;
+    }
+    
+    // 添加文字內容
+    const textElement = document.createElement('div');
+    textElement.className = 'transcript-text';
+    textElement.textContent = text;
+    
+    // 添加一個指示器，顯示這是臨時結果
+    const interimIndicator = document.createElement('span');
+    interimIndicator.className = 'interim-indicator';
+    interimIndicator.textContent = ' (辨識中...)';
+    interimIndicator.style.color = '#888';
+    interimIndicator.style.fontStyle = 'italic';
+    textElement.appendChild(interimIndicator);
+    
+    // 將元素添加到條目中
+    entry.appendChild(timeElement);
+    entry.appendChild(textElement);
+    
+    // 將條目添加到結果區域
+    transcriptionResultDiv.appendChild(entry);
+    transcriptionResultDiv.scrollTop = transcriptionResultDiv.scrollHeight;
+  }
+}
+    
+    // 更新狀態指示器
+    function updateStatus(type, isActive, statusText) {
+      const indicator = type === 'meeting' ? meetingStatusIndicator : recognitionStatusIndicator;
+      const text = type === 'meeting' ? meetingStatusText : recognitionStatusText;
+      
+      // 移除所有狀態類別
+      indicator.classList.remove('status-active', 'status-inactive', 'status-connecting');
+      
+      // 添加適當的類別
+      if (isActive === true) {
+        indicator.classList.add('status-active');
+      } else if (isActive === false) {
+        indicator.classList.add('status-inactive');
+      } else {
+        indicator.classList.add('status-connecting');
+      }
+      
+      // 更新文字
+      text.textContent = statusText;
+    }
+    
+    // 開始會議
+    function startMeeting(title) {
+      const now = new Date();
+      
+      currentMeeting = {
+        id: Date.now(), // 使用時間戳作為臨時 ID
+        title: title,
+        startTime: now,
+        endTime: null,
+        transcripts: []
+      };
+      
+      meetingTitleElement.textContent = title;
+      meetingTimeElement.textContent = `開始時間: ${now.toLocaleString()}`;
+      
+      updateStatus('meeting', true, '進行中');
+      
+      // 啟用/禁用按鈕
+      startMeetingBtn.disabled = true;
+      endMeetingBtn.disabled = false;
+      startButton.disabled = false;
+      
+      logMessage(`會議「${title}」已開始`, 'success');
+      
+      // 嘗試將會議資訊保存到資料庫
+      saveMeetingToServer();
+    }
+    
+    // 結束會議
+    function endMeeting() {
+      const now = new Date();
+      currentMeeting.endTime = now;
+      
+      meetingTimeElement.textContent += ` | 結束時間: ${now.toLocaleString()}`;
+      
+      updateStatus('meeting', false, '已結束');
+      
+      // 禁用/啟用按鈕
+      startMeetingBtn.disabled = false;
+      endMeetingBtn.disabled = true;
+      stopRecording(); // 停止錄音
+      
+      logMessage(`會議「${currentMeeting.title}」已結束`, 'info');
+      
+      // 提示保存結果
+      showSaveResultModal();
+    }
+    
+    // 保存會議到伺服器
+    async function saveMeetingToServer() {
+      try {
+        logMessage('正在保存會議資訊到伺服器...', 'info');
+        
+        const response = await fetch(`${API_BASE_URL}/add-meeting`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: currentMeeting.title,
+            startTime: currentMeeting.startTime.toISOString(),
+            endTime: currentMeeting.endTime ? currentMeeting.endTime.toISOString() : null
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`伺服器回應錯誤: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        currentMeeting.id = data.meetingId; // 更新為伺服器返回的 ID
+        
+        logMessage(`會議資訊已保存到伺服器，ID: ${currentMeeting.id}`, 'success');
+      } catch (error) {
+        logMessage(`保存會議資訊失敗: ${error.message}`, 'error');
+        console.error('保存會議失敗:', error);
+      }
+    }
+    
+    // 獲取 Azure 密鑰
+    async function getSpeechKey() {
+      try {
+        logMessage('正在從伺服器獲取 Azure 密鑰...', 'info');
+        
+        const response = await fetch(`${API_BASE_URL}/api/speech-key`);
+        logMessage(`伺服器回應狀態碼: ${response.status}`, 'info');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP 錯誤: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        if (!data.key || !data.region) {
+          throw new Error('伺服器回應中缺少密鑰或區域資訊');
+        }
+        
+        return data;
+      } catch (error) {
+        logMessage(`獲取 Azure 密鑰錯誤: ${error.message}`, 'error');
+        
+        if (error.message.includes('Failed to fetch')) {
+          logMessage('無法連接到伺服器，請確認伺服器已啟動並運行在 http://localhost:3000', 'error');
+        }
+        
+        return null;
+      }
+    }
+    
+    // 測試連接
+    async function testConnection() {
+      logMessage('正在測試 Azure 語音服務連接...', 'info');
+      updateStatus('recognition', null, '測試中...');
+      
+      try {
+        const keyData = await getSpeechKey();
+        if (!keyData) {
+          throw new Error('未能獲取語音服務密鑰');
+        }
+        
+        logMessage(`連接成功! 取得 Azure 區域: ${keyData.region}`, 'success');
+        logMessage('已設定自動語言偵測功能，支援多種語言', 'info');
+        updateStatus('recognition', false, '就緒');
+        startButton.disabled = false;
+        return true;
+      } catch (error) {
+        logMessage(`連接測試失敗: ${error.message}`, 'error');
+        updateStatus('recognition', false, '連接失敗');
+        return false;
+      }
+    }
+    
+    // 初始化語音識別
+    async function initSpeechRecognition() {
+      const keyData = await getSpeechKey();
+      
+      if (!keyData) {
+        logMessage('無法初始化語音辨識: 缺少 Azure 密鑰資訊', 'error');
+        return false;
+      }
+      
+      try {
+        logMessage('正在初始化自動語言識別...', 'info');
+        
+        // 設置 Speech 配置
+        speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
+          keyData.key, 
+          keyData.region
+        );
+        
+        // 使用默認支援的語言列表
+        logMessage(`已啟用自動語言偵測，支援: ${supportedLanguages.map(code => getLanguageName(code)).join(', ')}`, 'info');
+        
+        return true;
+      } catch (error) {
+        logMessage(`初始化語音辨識錯誤: ${error.message}`, 'error');
+        return false;
+      }
+    }
+    
+    // 添加事件處理器設置函數
+    function setupRecognizerEvents() {
+      if (!recognizer) return;
+      
+      // 臨時轉錄結果 (正在說話)
+      recognizer.recognized = (s, e) => {
+  if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+    const text = e.result.text;
+    if (text.trim() !== '') {
+      // 使用改進的語言提取方法
+      let detectedLanguage = extractDetectedLanguage(e.result);
+      
+      // 偵錯日誌
+      if (detectedLanguage) {
+        const langName = getLanguageName(detectedLanguage);
+        logMessage(`偵測到使用 ${langName} 語言 (${detectedLanguage})`, 'info');
+      } else {
+        logMessage('未能偵測到語言', 'warning');
+      }
+      
+      // 移除任何臨時結果
+      const interimEntries = transcriptionResultDiv.querySelectorAll('.interim-result');
+      if (interimEntries.length > 0) {
+        interimEntries[interimEntries.length - 1].remove();
+      }
+      
+      // 添加最終結果
+      addTranscriptionEntry(text, detectedLanguage, true);
+    }
+  }
+};
+      
+      // 最終轉錄結果 (說話完畢)
+      // 在 setupRecognizerEvents 中更新語言提取方式
+recognizer.recognized = (s, e) => {
+  if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+    const text = e.result.text;
+    if (text.trim() !== '') {
+      // 使用改進的語言提取方法
+      let detectedLanguage = extractDetectedLanguage(e.result);
+      
+      // 偵錯日誌
+      if (detectedLanguage) {
+        const langName = getLanguageName(detectedLanguage);
+        logMessage(`偵測到使用 ${langName} 語言 (${detectedLanguage})`, 'info');
+      } else {
+        logMessage('未能偵測到語言', 'warning');
+      }
+      
+      addTranscriptionEntry(text, detectedLanguage, true);
+    }
+  }
+};
+      
+      // 取消事件
+      recognizer.canceled = (s, e) => {
+        if (e.errorDetails && e.errorDetails.includes('Language identification only supports 4 languages')) {
+          logMessage('自動語言偵測錯誤: Azure 限制最多支援4種語言。已重新配置為使用4種語言。', 'error');
+          // 自動減少語言列表
+          supportedLanguages = supportedLanguages.slice(0, 4);
+          // 嘗試重新啟動錄音
+          setTimeout(() => {
+            if (!isRecognizing) {
+              startRecording();
+            }
+          }, 1000);
+        } else {
+          logMessage(`識別已取消: ${e.errorDetails || e.reason}`, 'error');
+          stopRecording();
+        }
+      };
+      
+      // 會話結束事件
+      recognizer.sessionStopped = (s, e) => {
+        logMessage('識別會話已結束', 'info');
+        stopRecording();
+      };
+      
+      // 監聽自動語言變更事件 (如果支援)
+      if (typeof recognizer.autoDetectSourceLanguageChanged === 'function') {
+        recognizer.autoDetectSourceLanguageChanged = (s, e) => {
+          if (e.result && e.result.language) {
+            const langName = getLanguageName(e.result.language);
+            logMessage(`語言已切換至: ${langName}`, 'info');
+          }
+        };
+      }
+    }
+    
+    // 開始錄音
+    async function startRecording() {
+      if (isRecognizing) return;
+      
+      if (!speechConfig && !(await initSpeechRecognition())) {
+        return;
+      }
+      
+      try {
+        logMessage('正在請求麥克風權限...', 'info');
+        updateStatus('recognition', null, '啟動中...');
+        
+        // 設置音頻配置
+        const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+        
+        // 建立自動語言偵測設定
+        let autoDetectConfig;
+        try {
+          // 嘗試使用連續模式
+          if (SpeechSDK.AutoDetectSourceLanguageMode && SpeechSDK.AutoDetectSourceLanguageMode.Continuous) {
+            autoDetectConfig = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages(
+              supportedLanguages,
+              SpeechSDK.AutoDetectSourceLanguageMode.Continuous
+            );
+            logMessage('使用連續語言偵測模式', 'info');
+          } else {
+            // 降級使用默認模式
+            autoDetectConfig = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages(supportedLanguages);
+            logMessage('使用默認語言偵測模式', 'info');
+          }
+        } catch (error) {
+          // 降級使用簡單模式
+          autoDetectConfig = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages(supportedLanguages);
+          logMessage(`無法設置連續語言偵測模式: ${error.message}，使用默認模式`, 'warning');
+        }
+        
+        // 創建語音識別器，使用自動語言偵測
+        try {
+          recognizer = SpeechSDK.SpeechRecognizer.FromConfig(
+            speechConfig, 
+            autoDetectConfig, 
+            audioConfig
+          );
+        } catch (e) {
+          logMessage(`創建自動語言識別器失敗: ${e.message}，嘗試替代方法...`, 'warning');
+          
+          // 如果上面的方法失敗，嘗試不同的方法
+          try {
+            // 方法1: 使用傳統建構式
+            const sourceLanguageConfig = new SpeechSDK.AutoDetectSourceLanguageConfig(
+              supportedLanguages, 
+              SpeechSDK.AutoDetectSourceLanguageMode.Continuous
+            );
+            recognizer = new SpeechSDK.SpeechRecognizer(
+              speechConfig, 
+              audioConfig,
+              sourceLanguageConfig
+            );
+          } catch (e2) {
+            logMessage(`替代方法也失敗: ${e2.message}`, 'error');
+            
+            // 方法2: 退回到基本識別，使用預設語言
+            speechConfig.speechRecognitionLanguage = 'zh-TW';
+            recognizer = new SpeechSDK.SpeechRecognizer(
+              speechConfig, 
+              audioConfig
+            );
+            logMessage('已退回到基本識別模式，使用繁體中文', 'warning');
+          }
+        }
+        
+        // 設置事件處理器
+        setupRecognizerEvents();
+        
+        // 開始連續識別
+        recognizer.startContinuousRecognitionAsync(
+          () => {
+            isRecognizing = true;
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            resetLanguageButton.disabled = false; // 啟用重置按鈕
+            updateStatus('recognition', true, '錄音中 (自動偵測語言)');
+            logMessage('開始錄音和多語言識別...', 'success');
+          },
+          (error) => {
+            logMessage(`開始錄音錯誤: ${error}`, 'error');
+            updateStatus('recognition', false, '錄音失敗');
+          }
+        );
+      } catch (error) {
+        logMessage(`開始錄音時出錯: ${error.message}`, 'error');
+        updateStatus('recognition', false, '錄音失敗');
+      }
+    }
+    
+    // 停止錄音
+    function stopRecording() {
+      if (!isRecognizing || !recognizer) return;
+      
+      try {
+        logMessage('正在停止錄音...', 'info');
+        
+        recognizer.stopContinuousRecognitionAsync(
+          () => {
+            isRecognizing = false;
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            resetLanguageButton.disabled = true; // 禁用重置按鈕
+            updateStatus('recognition', false, '已停止');
+            logMessage('錄音已停止', 'success');
+            
+            // 釋放資源
+            recognizer.close();
+            recognizer = null;
+          },
+          (error) => {
+            logMessage(`停止錄音錯誤: ${error}`, 'error');
+          }
+        );
+      } catch (error) {
+        logMessage(`停止錄音時出錯: ${error.message}`, 'error');
+      }
+    }
+    
+    // 重置語言識別
+    function resetLanguageRecognition() {
+      if (!isRecognizing) {
+        logMessage('未在錄音中，無法重置', 'warning');
+        return;
+      }
+      
+      logMessage('正在重置語言識別...', 'info');
+      updateStatus('recognition', null, '重置中...');
+      
+      try {
+        // 停止當前識別
+        recognizer.stopContinuousRecognitionAsync(
+          async () => {
+            logMessage('已暫停識別，準備重新設置', 'info');
+            
+            // 保存然後清空識別器引用
+            const oldRecognizer = recognizer;
+            recognizer = null;
+            
+            try {
+              // 釋放舊資源
+              if (oldRecognizer) {
+                try {
+                  oldRecognizer.close();
+                  logMessage('已關閉舊識別器', 'info');
+                } catch (e) {
+                  logMessage(`關閉舊識別器時出錯: ${e.message}`, 'warning');
+                }
+              }
+              
+              // 等待資源釋放
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
+              // 重新請求麥克風
+              logMessage('重新請求麥克風權限...', 'info');
+              const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+              
+              // 安全地創建語言配置 - 避免使用可能不存在的 Continuous 模式
+              let autoDetectConfig;
+              try {
+                // 檢查 Continuous 模式是否存在
+                if (SpeechSDK.AutoDetectSourceLanguageMode && 
+                    SpeechSDK.AutoDetectSourceLanguageMode.Continuous) {
+                  // 使用連續模式
+                  autoDetectConfig = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages(
+                    supportedLanguages,
+                    SpeechSDK.AutoDetectSourceLanguageMode.Continuous
+                  );
+                  logMessage('使用連續語言偵測模式重置', 'info');
+                } else {
+                  // 降級使用基本模式
+                  autoDetectConfig = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages(
+                    supportedLanguages
+                  );
+                  logMessage('使用基本語言偵測模式重置 (連續模式不可用)', 'info');
+                }
+              } catch (e) {
+                // 出錯時更安全的方式
+                logMessage(`語言配置錯誤: ${e.message}，使用最簡配置`, 'warning');
+                autoDetectConfig = new SpeechSDK.AutoDetectSourceLanguageConfig(supportedLanguages);
+              }
+              
+              // 嘗試創建新識別器
+              try {
+                recognizer = SpeechSDK.SpeechRecognizer.FromConfig(
+                  speechConfig, 
+                  autoDetectConfig, 
+                  audioConfig
+                );
+              } catch (e) {
+                // 如果 FromConfig 失敗，嘗試使用傳統建構函數
+                logMessage(`創建識別器失敗，嘗試替代方法: ${e.message}`, 'warning');
+                recognizer = new SpeechSDK.SpeechRecognizer(
+                  speechConfig, 
+                  audioConfig,
+                  autoDetectConfig
+                );
+              }
+              
+              // 重新設定事件
+              setupRecognizerEvents();
+              
+              // 重新開始識別
+              recognizer.startContinuousRecognitionAsync(
+                () => {
+                  isRecognizing = true;
+                  startButton.disabled = true;
+                  stopButton.disabled = false;
+                  resetLanguageButton.disabled = false;
+                  updateStatus('recognition', true, '錄音中 (已重置)');
+                  logMessage('語言識別已成功重置', 'success');
+                },
+                (error) => {
+                  logMessage(`重置後啟動失敗: ${error}`, 'error');
+                  isRecognizing = false;
+                  startButton.disabled = false;
+                  stopButton.disabled = true;
+                  resetLanguageButton.disabled = true;
+                  updateStatus('recognition', false, '重置失敗');
+                }
+              );
+            } catch (error) {
+              logMessage(`重置過程出錯: ${error.message}`, 'error');
+              // 重置失敗時恢復到可用狀態
+              isRecognizing = false;
+              startButton.disabled = false; 
+              stopButton.disabled = true;
+              resetLanguageButton.disabled = true;
+              updateStatus('recognition', false, '重置失敗');
+            }
+          },
+          (error) => {
+            logMessage(`停止當前識別失敗: ${error}`, 'error');
+          }
+        );
+      } catch (error) {
+        logMessage(`啟動重置過程出錯: ${error.message}`, 'error');
+      }
+    }
+    // 翻譯文本
+    // 翻譯文本
+async function translateText(text, sourceLanguage) {
+  try {
+    logMessage(`嘗試翻譯文本: "${text}"`, 'info');
+    
+    // Use the full URL for the API endpoint
+    const response = await axios.post(`${API_BASE_URL}/api/translate`, {
+      text: text,
+      from: sourceLanguage,
+      to: translationConfig.targetLanguage
+    });
+    
+    if (response.data && response.data.text) {
+      logMessage(`翻譯成功: ${sourceLanguage} → ${translationConfig.targetLanguage}`, 'success');
+      return response.data.text;
+    }
+    logMessage(`翻譯返回空結果`, 'warning');
+    return null;
+  } catch (error) {
+    console.error('Translation error:', error);
+    
+    // Better error logging
+    if (error.response) {
+      // The server responded with an error status
+      logMessage(`翻譯失敗: 服務器返回 ${error.response.status} ${error.response.statusText}`, 'error');
+    } else if (error.request) {
+      // The request was made but no response received
+      logMessage(`翻譯失敗: 無法連接到翻譯服務器`, 'error');
+    } else {
+      logMessage(`翻譯失敗: ${error.message}`, 'error');
+    }
+    
+    throw error;
+  }
+}
+    
+    // 改進獲取語言的方法
+function extractDetectedLanguage(result) {
+  // 先嘗試直接獲取
+  if (result.language) {
+    return result.language;
+  }
+  
+  // 嘗試從屬性中獲取
+  if (result.properties) {
+    try {
+      // 嘗試所有可能的屬性ID
+      const possibleIds = [
+        SpeechSDK.PropertyId.SpeechServiceResponse_JsonResult,
+        "LanguageDetectionResult", // 一些版本可能使用這個
+        "SpeechServiceResponse_AutoDetectSourceLanguageResult"
+      ];
+      
+      for (const id of possibleIds) {
+        const jsonStr = result.properties.getProperty(id);
+        if (jsonStr) {
+          const jsonObj = JSON.parse(jsonStr);
+          // 嘗試不同的結構
+          if (jsonObj.Language) return jsonObj.Language;
+          if (jsonObj.language) return jsonObj.language;
+          if (jsonObj.DetectedLanguage) return jsonObj.DetectedLanguage;
+          if (jsonObj.detectedLanguage) return jsonObj.detectedLanguage;
+        }
+      }
+    } catch (e) {
+      console.error("解析語言資訊失敗:", e);
+    }
+  }
+  
+  return null;
+}
+    // 複製結果
+    function copyTranscriptionResult() {
+      const textToCopy = currentMeeting.transcripts.map(t => t.text).join('\n\n');
+      
+      if (!textToCopy) {
+        logMessage('沒有可複製的文字', 'warning');
+        return;
+      }
+      
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => {
+          logMessage('文字已複製到剪貼簿', 'success');
+        })
+        .catch(err => {
+          logMessage(`複製失敗: ${err.message}`, 'error');
+        });
+    }
+    
+    // 清除結果
+    function clearTranscriptionResult() {
+      if (confirm('確定要清除所有轉錄結果嗎？此操作無法撤銷。')) {
+        transcriptionResultDiv.innerHTML = '';
+        currentMeeting.transcripts = [];
+        logMessage('轉錄結果已清除', 'info');
+      }
+    }
+    
+    // 下載會議記錄
+    function downloadTranscriptionResult() {
+      const title = saveTitle.value || currentMeeting.title || '會議記錄';
+      const notes = saveNotes.value || '';
+      
+      let content = `會議標題: ${title}\n`;
+      content += `日期: ${new Date().toLocaleDateString()}\n`;
+      content += `開始時間: ${currentMeeting.startTime ? currentMeeting.startTime.toLocaleTimeString() : 'N/A'}\n`;
+      content += `結束時間: ${currentMeeting.endTime ? currentMeeting.endTime.toLocaleTimeString() : 'N/A'}\n\n`;
+      
+      if (notes) {
+        content += `備註:\n${notes}\n\n`;
+      }
+      
+      content += `===== 會議內容 =====\n\n`;
+      
+      if (currentMeeting.transcripts.length > 0) {
+        currentMeeting.transcripts.forEach((t, index) => {
+          const time = new Date(t.timestamp).toLocaleTimeString();
+          // 獲取語言名稱
+          const langName = getLanguageName(t.language);
+          const langInfo = langName ? `[${langName}] ` : '';
+          
+          content += `[${time}] ${t.speaker || '發言者'} ${langInfo}: ${t.text}\n\n`;
+        });
+      } else {
+        content += '沒有記錄內容\n';
+      }
+      
+      // 創建 Blob 並下載
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title.replace(/[^\w\s]/gi, '')}_${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      logMessage('會議記錄已下載', 'success');
+    }
+    
+    // 顯示開始會議對話框
+    function showStartMeetingModal() {
+      newMeetingTitle.value = `會議 ${new Date().toLocaleDateString()}`;
+      startMeetingModal.style.display = 'block';
+    }
+    
+    // 隱藏開始會議對話框
+    function hideStartMeetingModal() {
+      startMeetingModal.style.display = 'none';
+    }
+    
+    // 顯示保存結果對話框
+    function showSaveResultModal() {
+      saveTitle.value = currentMeeting.title || '';
+      saveResultModal.style.display = 'block';
+    }
+    
+    // 隱藏保存結果對話框
+    function hideSaveResultModal() {
+      saveResultModal.style.display = 'none';
+    }
+    
+    // 保存會議記錄
+    async function saveTranscriptionResult() {
+      const title = saveTitle.value || currentMeeting.title;
+      const notes = saveNotes.value || '';
+      
+      if (!title) {
+        alert('請輸入標題');
+        return;
+      }
+      
+      logMessage(`正在保存會議記錄「${title}」...`, 'info');
+      
+      try {
+        // 將每條記錄保存到資料庫
+        if (currentMeeting.id && currentMeeting.transcripts.length > 0) {
+          for (const transcript of currentMeeting.transcripts) {
+            await fetch(`${API_BASE_URL}/api/add-transcript`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                meetingId: currentMeeting.id,
+                speaker: transcript.speaker,
+                originalLanguage: transcript.language,
+                originalText: transcript.text,
+                timestamp: transcript.timestamp
+              })
+            });
+          }
+          
+          logMessage(`會議記錄「${title}」已保存到資料庫`, 'success');
+        } else {
+          logMessage('沒有可保存的記錄或會議 ID 不存在', 'warning');
+        }
+      } catch (error) {
+        logMessage(`保存會議記錄失敗: ${error.message}`, 'error');
+      }
+      
+      hideSaveResultModal();
+    }
+    async function resetSpeechConfig() {
+      // 重新獲取密鑰和區域
+      const keyData = await getSpeechKey();
+      if (!keyData) {
+        logMessage('重新獲取 Speech 密鑰失敗', 'error');
+        return false;
+      }
+      
+      // 重新創建語音配置
+      speechConfig = SpeechSDK.SpeechConfig.fromSubscription(
+        keyData.key, 
+        keyData.region
+      );
+      
+      logMessage('已重新初始化語音服務連接', 'success');
+      return true;
+    }
+    // 處理目標語言變更
+    document.getElementById('target-language').addEventListener('change', (e) => {
+      translationConfig.targetLanguage = e.target.value;
+      logMessage(`翻譯目標語言已變更為: ${e.target.options[e.target.selectedIndex].text}`, 'info');
+    });
+
+    // 頁面載入時初始化
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Add styles for interim results
+function addStyles() {
+  const styleSheet = document.createElement("style");
+  styleSheet.textContent = `
+    .interim-result {
+      opacity: 0.7;
+      border-left: 3px solid #FFC107;
+      padding-left: 5px;
+    }
+    
+    .transcript-entry:not(.interim-result) {
+      border-left: 3px solid transparent;
+      padding-left: 5px;
+    }
+  `;
+  document.head.appendChild(styleSheet);
+}
+
+// Add the new styles
+addStyles();
+      // 檢查 SDK 載入狀態
+      if (typeof SpeechSDK === 'undefined') {
+        logMessage('警告: 語音 SDK 載入失敗，請檢查網絡連接', 'error');
+        return;
+      }
+      
+      // 記錄 SDK 版本
+      logMessage(`語音 SDK 版本: ${SpeechSDK.VERSION || '未知'}`, 'info');
+      
+      // 檢查關鍵功能
+      const hasAutoDetect = SpeechSDK.AutoDetectSourceLanguageConfig !== undefined;
+      const hasContinuousMode = SpeechSDK.AutoDetectSourceLanguageMode && 
+                               SpeechSDK.AutoDetectSourceLanguageMode.Continuous !== undefined;
+      
+      logMessage(`支援語言自動偵測: ${hasAutoDetect ? '是' : '否'}`, 'info');
+      logMessage(`支援連續語言偵測模式: ${hasContinuousMode ? '是' : '否'}`, 'info');
+      
+      // 其他初始化代碼...
+      startMeetingBtn.addEventListener('click', showStartMeetingModal);
+endMeetingBtn.addEventListener('click', endMeeting);
+testConnectionButton.addEventListener('click', testConnection);
+startButton.addEventListener('click', startRecording);
+stopButton.addEventListener('click', stopRecording);
+resetLanguageButton.addEventListener('click', resetLanguageRecognition);
+copyResultBtn.addEventListener('click', copyTranscriptionResult);
+saveResultBtn.addEventListener('click', showSaveResultModal);
+clearResultBtn.addEventListener('click', clearTranscriptionResult);
+
+// 對話框相關事件
+closeStartMeeting.addEventListener('click', hideStartMeetingModal);
+confirmStartMeeting.addEventListener('click', () => {
+  const title = newMeetingTitle.value || `會議 ${new Date().toLocaleDateString()}`;
+  startMeeting(title);
+  hideStartMeetingModal();
+});
+
+closeSaveResult.addEventListener('click', hideSaveResultModal);
+confirmSaveResult.addEventListener('click', saveTranscriptionResult);
+downloadResult.addEventListener('click', downloadTranscriptionResult);
+
+// 當用戶點擊對話框外部時關閉對話框
+window.addEventListener('click', (event) => {
+  if (event.target === startMeetingModal) {
+    hideStartMeetingModal();
+  } else if (event.target === saveResultModal) {
+    hideSaveResultModal();
+  }
+});
+    });
+  </script>
+</body>
+</html>

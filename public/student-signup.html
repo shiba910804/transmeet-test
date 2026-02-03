@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            max-width: 90vw;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #e8f4fd;
+            color: #0a2463;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .role-icon {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+        h1 {
+            color: #0a2463;
+            margin: 0;
+            font-size: 24px;
+        }
+        .subtitle {
+            color: #666;
+            margin-top: 0.5rem;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #0a2463;
+            box-shadow: 0 0 0 2px rgba(10, 36, 99, 0.1);
+        }
+        button {
+            background-color: #0a2463;
+            color: white;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #2c7db3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .back-link a {
+            color: #0a2463;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        .connection-status {
+            display: none;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #333;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="role-badge">
+                <span class="role-icon">👨‍🎓</span>
+                學生 Student
+            </div>
+            <h1>Create Student Account</h1>
+            <p class="subtitle">Join our learning platform as a student</p>
+        </div>
+
+        <!-- 連接狀態指示器 -->
+        <div id="connection-status" class="connection-status">
+            <span id="status-indicator" style="color: orange;">⚠️ 檢查連接中...</span>
+        </div>
+
+        <form id="signup-form">
+            <div class="form-group">
+                <label for="student-id">Student ID</label>
+                <input type="text" id="student-id" placeholder="Enter your student ID" required>
+            </div>
+
+            <div class="form-group">
+                <label for="username">User Name</label>
+                <input type="text" id="username" placeholder="Choose a user name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Create a password (min 6 characters)" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" placeholder="Re-enter your password" required>
+            </div>
+
+            <button type="button" id="signup-btn">Create Student Account</button>
+            <div id="signup-message" class="message"></div>
+        </form>
+
+        <div class="back-link">
+            <a href="auth.html">← Back to Login</a>
+            <br><br>
+            <a href="teacher-signup.html">Register as Teacher</a>
+        </div>
+    </div>
+
+    <script>
+  // === 基本設定 ===
+  const API_BASE_URL = ''; // 同網域可留空；不同網域請填完整 base url
+
+  // 共用訊息顯示
+  function showMessage(id, msg, ok) {
+    const el = document.getElementById(id);
+    if (!el) return alert(msg);
+    el.textContent = msg;
+    el.className = ok ? 'message success' : 'message error';
+    el.style.display = 'block';
+    console.log(`${ok ? '✅' : '❌'} ${id}: ${msg}`);
+  }
+
+  // 送出按鈕 loading
+  function setButtonLoading(loading) {
+    const btn = document.getElementById('signup-btn');
+    btn.disabled = loading;
+    btn.textContent = loading ? '處理中...' : 'Create Student Account';
+  }
+
+  // 健康檢查（頁面載入時）
+  window.addEventListener('load', async () => {
+    const el = document.getElementById('status-indicator');
+    const tryFetch = async (url) => {
+      const r = await fetch(url, { cache: 'no-store' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    };
+    try {
+      let data;
+      try {
+        data = await tryFetch(`${API_BASE_URL}/health`);
+      } catch (e) {
+        if (String(e.message).includes('404')) {
+          data = await tryFetch(`${API_BASE_URL}/api/health`);
+        } else { throw e; }
+      }
+      el.textContent = '✅ 服務器連接正常';
+      el.style.color = 'green';
+      console.log('服務器狀態:', data);
+    } catch (err) {
+      el.textContent = '❌ 服務器連接失敗';
+      el.style.color = 'red';
+      showMessage('signup-message', `連接失敗: ${err.message}`, false);
+    }
+  });
+
+  // 表單送出主流程
+  async function signup(e) {
+    e?.preventDefault?.();
+
+    const studentId = document.getElementById('student-id').value.trim();
+    const username  = document.getElementById('username').value.trim();
+    const email     = document.getElementById('email').value.trim();
+    const password  = document.getElementById('password').value;
+    const confirm   = document.getElementById('confirm-password').value;
+
+    // 前端驗證
+    if (!studentId || !username || !email || !password || !confirm) {
+      showMessage('signup-message', '請填寫所有必填欄位', false);
+      return;
+    }
+    if (password !== confirm) {
+      showMessage('signup-message', 'Passwords do not match', false);
+      return;
+    }
+    if (password.length < 6) {
+      showMessage('signup-message', '密碼至少需要6個字符', false);
+      return;
+    }
+
+    setButtonLoading(true);
+    showMessage('signup-message', '正在建立帳號…', true);
+
+    try {
+      // 關鍵：帶上 role = 'student'，full_name 用學號（可依需求改）
+      const payload = {
+        username,
+        email,
+        password,
+        full_name: studentId,
+        role: 'student',
+      };
+
+      console.log('嘗試註冊學生:', { username, email, studentId });
+      const resp = await fetch(`${API_BASE_URL}/api/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include',
+      });
+
+      // 有些錯誤回應可能不是 JSON，保險處理
+      let data = {};
+      try { data = await resp.json(); } catch (_) {}
+
+      console.log('註冊響應狀態:', resp.status);
+      console.log('註冊響應數據:', data);
+
+      if (resp.ok) {
+        // 後端現在回傳 message 與 user（不回 token），引導去驗證信箱
+        showMessage('signup-message', '註冊成功，驗證信已寄出，請前往信箱完成驗證再登入。', true);
+        setTimeout(() => { window.location.href = '/auth.html'; }, 2000);
+      } else {
+        // 常見錯誤訊息轉中文/友善提示
+        let msg = data.error || 'Signup failed';
+        const details = String(data.details || '');
+        if (/users_username_key/i.test(details)) msg = 'Username already exists';
+        if (/users_email_key/i.test(details)) msg = 'Email already exists';
+        if (/SMTP_SEND_FAILED|ECONNREFUSED|ETIMEDOUT|EAUTH|ENOTFOUND/i.test(details+msg)) {
+          msg = '寄送驗證信失敗：請聯絡系統管理員檢查 SMTP 伺服器設定。';
+        }
+        showMessage('signup-message', msg, false);
+      }
+    } catch (err) {
+      console.error('註冊請求錯誤:', err);
+      showMessage('signup-message', `網路錯誤：${err.message}`, false);
+    } finally {
+      setButtonLoading(false);
+    }
+  }
+
+  // 綁定：按鈕 & 表單 Enter 送出
+  document.getElementById('signup-btn').addEventListener('click', signup);
+  document.getElementById('signup-form').addEventListener('submit', signup);
+  // 另可補：限制全域 Enter 重複觸發
+  document.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && e.target.closest('#signup-form')) {
+      e.preventDefault();
+      signup(e);
+    }
+  });
+</script>
+
+</body>
+</html>
