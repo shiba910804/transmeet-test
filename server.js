@@ -2304,7 +2304,7 @@ async function ensureShareLink(meetingId, permission = 'viewer', expiresInHours 
     const shareCode = existing[0].share_token;
     const baseUrl = `${req.protocol}://${req.get('host')}`;
     return {
-      shareUrl: `${baseUrl}/join/${shareCode}`,
+      shareUrl: `${baseUrl}/join/${meetingId}`,
       shareCode,
       expiresAt: existing[0].expires_at,
       permission,
@@ -2323,7 +2323,7 @@ async function ensureShareLink(meetingId, permission = 'viewer', expiresInHours 
   );
   const baseUrl = `${req.protocol}://${req.get('host')}`;
   return {
-    shareUrl: `${baseUrl}/join/${shareCode}`,
+    shareUrl: `${baseUrl}/join/${meetingId}`,
     shareCode,
     expiresAt,
     permission,
@@ -2723,7 +2723,7 @@ app.post('/api/meetings/:id/share', requireAuth, async (req, res) => {
     
     // 構建分享 URL
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const shareUrl = `${baseUrl}/join/${shareCode}`;
+    const shareUrl = `${baseUrl}/join/${meetingId}`;
     
     console.log(`✅ 分享連結生成成功: ${shareUrl}`);
     
