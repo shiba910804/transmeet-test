@@ -1119,6 +1119,12 @@
         <p><strong>開始時間Start time：</strong><span id="share-start-time">載入中...</span></p>
         <p><strong>當前參與者Current participants：</strong><span id="share-participant-count">載入中...</span></p>
       </div>
+      
+      <div class="share-link-container">
+        <input type="text" class="share-link-input" id="share-link" readonly placeholder="正在生成分享連結...">
+        <button class="copy-btn" id="copy-btn" onclick="copyShareLink()">
+        <!-- 新增：輸入新 Email 並送出 URL -->
+      </div>
 
       <div id="qrcode-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 25px 0; padding: 20px; background: #ffffff; border-radius: 12px; border: 1px dashed #ddd;">
         <div id="qrcode"></div> <p style="font-size: 13px; color: #0a2463; margin-top: 12px; font-weight: 500;">📱 手機掃描 QR Code 免登入上課</p>
