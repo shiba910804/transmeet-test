@@ -2304,7 +2304,7 @@ async function ensureShareLink(meetingId, permission = 'viewer', expiresInHours 
     const shareCode = existing[0].share_token;
     const baseUrl = `${req.protocol}://${req.get('host')}`;
     return {
-      shareUrl: `${baseUrl}/join/${meetingId}`,
+      shareUrl: `${baseUrl}/join/${shareCode}`,
       shareCode,
       expiresAt: existing[0].expires_at,
       permission,
@@ -2323,7 +2323,7 @@ async function ensureShareLink(meetingId, permission = 'viewer', expiresInHours 
   );
   const baseUrl = `${req.protocol}://${req.get('host')}`;
   return {
-    shareUrl: `${baseUrl}/join/${meetingId}`,
+    shareUrl: `${baseUrl}/join/${shareCode}`,
     shareCode,
     expiresAt,
     permission,
@@ -2723,7 +2723,7 @@ app.post('/api/meetings/:id/share', requireAuth, async (req, res) => {
     
     // 構建分享 URL
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const shareUrl = `${baseUrl}/join/${meetingId}`;
+    const shareUrl = `${baseUrl}/join/${shareCode}`;
     
     console.log(`✅ 分享連結生成成功: ${shareUrl}`);
     
@@ -3488,6 +3488,11 @@ app.get('/api/speech-debug', (req, res) => {
     endpoint: process.env.AZURE_SPEECH_ENDPOINT || null,
     hasKey: !!process.env.AZURE_SPEECH_KEY
   });
+});
+
+// ✅ 短網址 /join/<token> 轉回匿名 share 入口
+app.get('/join/:token', (req, res) => {
+  res.redirect(`/meeting.html?share=${req.params.token}`);
 });
 
 module.exports = app;
