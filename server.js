@@ -171,6 +171,14 @@ app.use((req, res, next) => {
 // 靜態檔案（public 資料夾）
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/join/:id', (req, res) => {
+  const meetingId = req.params.id;
+  console.log("Join meeting:", meetingId);
+
+  // 直接回傳 meeting.html
+  res.sendFile(path.join(__dirname, 'public', 'meeting.html'));
+});
+
 // 簡易請求日誌
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
@@ -2296,7 +2304,7 @@ async function ensureShareLink(meetingId, permission = 'viewer', expiresInHours 
     const shareCode = existing[0].share_token;
     const baseUrl = `${req.protocol}://${req.get('host')}`;
     return {
-      shareUrl: `${baseUrl}/meeting.html?share=${shareCode}`,
+      shareUrl: `${baseUrl}/join/${meetingId}`,
       shareCode,
       expiresAt: existing[0].expires_at,
       permission,
@@ -2315,7 +2323,7 @@ async function ensureShareLink(meetingId, permission = 'viewer', expiresInHours 
   );
   const baseUrl = `${req.protocol}://${req.get('host')}`;
   return {
-    shareUrl: `${baseUrl}/meeting.html?share=${shareCode}`,
+    shareUrl: `${baseUrl}/join/${meetingId}`,
     shareCode,
     expiresAt,
     permission,
@@ -2715,7 +2723,7 @@ app.post('/api/meetings/:id/share', requireAuth, async (req, res) => {
     
     // 構建分享 URL
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const shareUrl = `${baseUrl}/meeting.html?share=${shareCode}`;
+    const shareUrl = `${baseUrl}/join/${meetingId}`;
     
     console.log(`✅ 分享連結生成成功: ${shareUrl}`);
     

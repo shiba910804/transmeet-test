@@ -1224,9 +1224,21 @@ micOffBtn.addEventListener('click', () => {
         console.log('課程頁面載入完成');
 
         // 1. 先抓取 URL 參數
-        const urlParams = new URLSearchParams(window.location.search);
-        const shareToken = urlParams.get('share');
-        meetingId = urlParams.get('id');
+        const pathParts = window.location.pathname.split('/');
+        const lastPart = pathParts[pathParts.length - 1];
+        
+        let shareToken = null;
+
+        if (pathParts.includes('join')) {
+            meetingId = lastPart;
+            console.log('從路徑取得 meetingId:', meetingId);
+        }
+        else {
+            // 舊版相容（保留 ?share=）
+            const urlParams = new URLSearchParams(window.location.search);
+            shareToken = urlParams.get('share');
+            meetingId = urlParams.get('id');
+        } 
 
         // 2. [關鍵修改]：如果有 shareToken，優先執行匿名登入
         if (shareToken) {
@@ -1238,6 +1250,9 @@ micOffBtn.addEventListener('click', () => {
                 return;
             }
         }
+
+        // 🔥 之後你所有 fetch 都用 meetingId
+        console.log('最終 meetingId:', meetingId);
         
         // 檢查認證
         if (!checkAuth()) {
