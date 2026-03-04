@@ -1227,14 +1227,14 @@ micOffBtn.addEventListener('click', () => {
 
         // 1. 先抓取 URL 參數
         const pathParts = window.location.pathname.split('/');
-        const lastPart = pathParts[pathParts.length - 1];
+        const urlParams = new URLSearchParams(window.location.search);
         
         let shareToken = urlParams.get('share'); // 處理 ?share=token 格式
 
         // 2. 關鍵修正：如果是 /join/xxx 格式，路徑最後一段就是 shareToken
         if (pathParts.includes('join')) {
             shareToken = pathParts[pathParts.length - 1];
-            console.log('從路徑取得 shareToken:', shareToken);
+            console.log('從路徑取得 shareToken(短網址模式):', shareToken);
         } 
 
         // 2. [關鍵修改]：如果有 shareToken，優先執行匿名登入
@@ -1242,18 +1242,34 @@ micOffBtn.addEventListener('click', () => {
             console.log('偵測到分享連結，嘗試匿名登入...');
             const success = await handleShareLink(shareToken);
             if (success) {
+                console.log('匿名登入成功');
                 return;
-            } else  {
-              alert('分享連結無效或已過期');
-              window.location.href='auth.html';
-              return;
-            }
+            }    
         }
-               
-        // 檢查認證
+
         if (!checkAuth()) {
+            console.log('無登入資訊，跳轉至 auth.html');
             return;
         }
+
+        const urlMeetingId = urlParams.get('id');
+        if (urlMeetingId) {
+            meetingId = urlMeetingId;
+        } else if (!meetingId) {
+            // 如果網址路徑最後一段是 ID 但不是 join 模式
+            meetingId = pathParts[pathParts.length - 1];
+        }
+
+        if (!meetingId) {
+            alert('無效的課程ID');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        console.log('最終使用的 meetingId:', meetingId);
+
+        
+
         
         // 載入用戶語言偏好
         await loadUserLanguagePreference();
