@@ -2302,9 +2302,12 @@ async function ensureShareLink(meetingId, permission = 'viewer', expiresInHours 
 
   if (existing.length) {
     const shareCode = existing[0].share_token;
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+    const proto = (req.headers['x-forwarded-proto'] || req.protocol);
+    const baseUrl = `${proto}://${req.get('host')}`;
+
     return {
-      shareUrl: `${baseUrl}/join/${meetingId}`,
+      shareUrl: `${baseUrl}/join/${shareCode}`,
       shareCode,
       expiresAt: existing[0].expires_at,
       permission,
@@ -2319,11 +2322,14 @@ async function ensureShareLink(meetingId, permission = 'viewer', expiresInHours 
   await pool.query(
     `INSERT INTO meeting_share_links (meeting_id, share_token, permission, expires_at, created_by)
      VALUES ($1,$2,$3,$4,$5)`,
-    [meetingId, shareCode, permission, req.user.userId]
+    [meetingId, shareCode, permission, expiresAt, req.user.userId]
   );
-  const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+  const proto = (req.headers['x-forwarded-proto'] || req.protocol);
+  const baseUrl = `${proto}://${req.get('host')}`;
+
   return {
-    shareUrl: `${baseUrl}/join/${meetingId}`,
+    shareUrl: `${baseUrl}/join/${shareCode}`,
     shareCode,
     expiresAt,
     permission,
@@ -2722,8 +2728,9 @@ app.post('/api/meetings/:id/share', requireAuth, async (req, res) => {
     );
     
     // 構建分享 URL
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const shareUrl = `${baseUrl}/join/${meetingId}`;
+    const proto = (req.headers['x-forwarded-proto'] || req.protocol);
+    const baseUrl = `${proto}://${req.get('host')}`;
+    const shareUrl = `${baseUrl}/join/${shareCode}`;
     
     console.log(`✅ 分享連結生成成功: ${shareUrl}`);
     
@@ -2748,15 +2755,24 @@ app.post('/api/meetings/:id/share', requireAuth, async (req, res) => {
 });
 app.get('/api/share/:code', async (req, res) => {
   const shareCode = req.params.code;
-  
   console.log(`🔍 驗證分享連結: ${shareCode}`);
   
   try {
     const shareQuery = await pool.query(
-      `SELECT sl.*, m.title, m.id as meeting_id
-      FROM meeting_share_links sl
-      JOIN meetings m ON sl.meeting_id = m.id
-      WHERE sl.share_token = $1 AND sl.is_active = true`,  // 改為 share_token
+      `SELECT 
+          sl.meeting_id,
+          sl.share_token,
+          sl.permission,
+          sl.expires_at,
+          sl.is_active,
+          m.title,
+          m.creator_id,
+          m.start_time,
+          m.end_time,
+          m.folder_id
+       FROM meeting_share_links sl
+       JOIN meetings m ON sl.meeting_id = m.id
+       WHERE sl.share_token = $1 AND sl.is_active = true`,
       [shareCode]
     );
     
@@ -2775,12 +2791,14 @@ app.get('/api/share/:code', async (req, res) => {
     
     return res.json({
       valid: true,
+      shareToken: shareLink.share_token,
       meeting: {
         id: shareLink.meeting_id,
         title: shareLink.title,
         creator_id: shareLink.creator_id,
         start_time: shareLink.start_time,
-        end_time: shareLink.end_time
+        end_time: shareLink.end_time,
+        folder_id: shareLink.folder_id
       },
       permission: 'viewer',
       expiresAt: shareLink.expires_at
@@ -3198,17 +3216,36 @@ app.post('/api/auth/anonymous-join', async (req, res) => {
       return res.status(410).json({ error: '此連結已過期' });
     }
 
+    const suffix = crypto.randomBytes(4).toString('hex');
+    const guestUsername = `guest_${suffix}`;
+    const guestEmail = `guest_${suffix}@transmeet.local`;
+    const guestPassword = crypto.randomBytes(16).toString('hex');
+    const guestHashed = await bcrypt.hash(guestPassword, 10);
+
+    const insertUser = await pool.query(
+      `INSERT INTO users (username, email, password, full_name, role, email_verified, preferred_language)
+       VALUES ($1, $2, $3, $4, 'student', true, 'zh-Hant')
+       RETURNING id, username, role`,
+      [guestUsername, guestEmail, guestHashed, '訪客學生']
+    );
+
+    const guestUser = insertUser.rows[0];
+
+    try {
+      await pool.query(
+        `INSERT INTO meeting_participants (meeting_id, user_id, role)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (meeting_id, user_id) DO NOTHING`,
+        [shareLink.meeting_id, guestUser.id, 'viewer']
+      );
+    } catch (e) {
+      console.warn('⚠️ 匿名加入寫入 meeting_participants 失敗（不一定致命）:', e.message);
+    }
+
     // 3. 核發臨時 JWT (身份標記為 anonymous)
-    const tempUserId = `anon_${crypto.randomBytes(4).toString('hex')}`;
     const token = jwt.sign(
-      { 
-        userId: tempUserId, 
-        username: `訪客學生`, 
-        role: 'student', 
-        isAnonymous: true,
-        meetingId: shareLink.meeting_id 
-      },
-      SECRET, // 使用你 server.js 定義的 SECRET
+      { userId: guestUser.id, username: guestUser.username, role: 'student', isAnonymous: true },
+      JWT_SECRET,
       { expiresIn: '6h' }
     );
 
@@ -3217,11 +3254,12 @@ app.post('/api/auth/anonymous-join', async (req, res) => {
       token,
       meetingId: shareLink.meeting_id,
       meetingTitle: shareLink.title,
-      role: 'viewer'
+      role: 'viewer',
+      user: { id: guestUser.id, username: guestUser.username, role: guestUser.role }
     });
   } catch (err) {
     console.error('匿名加入失敗:', err);
-    return res.status(500).json({ error: '伺服器錯誤' });
+    return res.status(500).json({ success: false, error: '匿名加入失敗', details: err.message });
   }
 });
 
