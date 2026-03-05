@@ -1215,94 +1215,94 @@ micOffBtn.addEventListener('click', () => {
   if (mediaStream) {
     mediaStream.getTracks().forEach(track => track.stop());
     mediaStream = null;
-  }
+  }S
   statusIndicator.classList.remove('status-active');
   statusIndicator.classList.add('status-inactive');
   statusText.textContent = "已停止錄音 Stopped";
 });
 
     // Initialize the meeting page
-    document.addEventListener('DOMContentLoaded', async () => {
-        console.log('課程頁面載入完成');
+    //document.addEventListener('DOMContentLoaded', async () => {
+        //console.log('課程頁面載入完成');
 
         // 1. 先抓取 URL 參數
-        const pathParts = window.location.pathname.split('/').filter(p => p);
-        const urlParams = new URLSearchParams(window.location.search);
+        //const pathParts = window.location.pathname.split('/').filter(p => p);
+        //const urlParams = new URLSearchParams(window.location.search);
         
-        let shareToken = urlParams.get('share'); // 處理 ?share=token 格式
+        //let shareToken = urlParams.get('share'); // 處理 ?share=token 格式
 
-        const joinIndex = pathParts.indexOf('join');
-        if (joinIndex !== -1 && pathParts[joinIndex + 1]) {
+        //const joinIndex = pathParts.indexOf('join');
+        //if (joinIndex !== -1 && pathParts[joinIndex + 1]) {
             // 確保抓到的是 join 之後的那一個片段
-            const potentialToken = pathParts[joinIndex + 1];
-            if (potentialToken !== 'index.html' && potentialToken !== 'meeting.html') {
-                shareToken = potentialToken;
-                console.log('🎯 成功鎖定短網址 Token:', shareToken);
-            }
-        }
+            //const potentialToken = pathParts[joinIndex + 1];
+            //if (potentialToken !== 'index.html' && potentialToken !== 'meeting.html') {
+                //shareToken = potentialToken;
+                //console.log('🎯 成功鎖定短網址 Token:', shareToken);
+            //}
+        //}
 
-        if (shareToken) {
-            console.log('偵測到分享連結，嘗試進入課程...');
-            const success = await handleShareLink(shareToken);
-            if (success) {
+        //if (shareToken) {
+            //console.log('偵測到分享連結，嘗試進入課程...');
+            //const success = await handleShareLink(shareToken);
+            //if (success) {
                 // 匿名登入成功後，重新導向到標準網址，防止網址路徑混淆 API
-                window.location.href = `meeting.html?id=${shareToken}`;
-                return;
-            }
-        }
+                //window.location.href = `meeting.html?id=${shareToken}`;
+                //return;
+            //}
+        //}
 
-        if (!checkAuth()) {
-            console.log('無登入資訊，跳轉至 auth.html');
-            return;
-        }
+        //if (!checkAuth()) {
+            //console.log('無登入資訊，跳轉至 auth.html');
+            //return;
+        //}
 
-        meetingId = urlParams.get('id') || shareToken;
+        //meetingId = urlParams.get('id') || shareToken;
 
-        if (!meetingId || meetingId === 'index.html') {
-            console.error('❌ 無法識別課程 ID，目前值為:', meetingId);
-            return;
-        }
+        //if (!meetingId || meetingId === 'index.html') {
+            //console.error('❌ 無法識別課程 ID，目前值為:', meetingId);
+            //return;
+        //}
  
         // 載入用戶語言偏好
-        await loadUserLanguagePreference();
+        //await loadUserLanguagePreference();
         
 
         // 處理分享連結
-        if (shareToken) {
-            await handleShareLink(shareToken);
-            return;
-        }
+        //if (shareToken) {
+            //await handleShareLink(shareToken);
+            //return;
+        //}
         
-        if (!meetingId) {
-            alert('無效的課程ID');
-            window.location.href = 'index.html';
-            return;
-        }
+        //if (!meetingId) {
+            //alert('無效的課程ID');
+            //window.location.href = 'index.html';
+            //return;
+        //}
         
-        console.log('會議ID:', meetingId);
+        //console.log('會議ID:', meetingId);
         
         // 初始化會議
-        await initializeMeeting();
+        //await initializeMeeting();
         
         // 加入 Socket.IO 房間
-        await joinMeetingRoom();
+        //await joinMeetingRoom();
         
         // 綁定事件監聽器
-        bindEventListeners();
+        //bindEventListeners();
         
         // 開始會議持續時間計時器
-        startDurationTimer();
+        //startDurationTimer();
         
         // 初始化語音識別（只有參與者和老師才能錄音）
-        if (userRole !== 'viewer') {
-            await initSpeechRecognition();
-        } else {
-            showSuccessMessage('您以觀看者身份進入課程');
-        }
+        //if (userRole !== 'viewer') {
+            //await initSpeechRecognition();
+        //} else {
+            //showSuccessMessage('您以觀看者身份進入課程');
+        //}
         
         // 初始化雙麥克風按鈕
-        initializeDualMicButtons();
-    });
+        //initializeDualMicButtons();
+    //});
     // 初始化雙麥克風按鈕
     function initializeDualMicButtons() {
         if (micOnBtn && micOffBtn) {
@@ -1494,7 +1494,7 @@ micOffBtn.addEventListener('click', () => {
     if (!idOrToken) return;
 
     const isNumericId = /^\d+$/.test(idOrToken);
-    const isShareToken = /^[a-f0-9]{64}$/i.test(idOrToken);
+    const isShareToken = /^[a-f0-9]{8}$/i.test(idOrToken);
 
     try {
       if (isShareToken) {
