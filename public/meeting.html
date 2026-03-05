@@ -1485,13 +1485,43 @@ micOffBtn.addEventListener('click', () => {
   }
 
   // 頁面初始化
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const meetingId = urlParams.get('id');
+    const idOrToken = urlParams.get('id');
     // 如果你會用 ?role=viewer/student 來區分，也可取用；沒帶就預設 student
     const role = urlParams.get('role') || 'student';
 
-    if (meetingId) startMeetingStatusCheck(meetingId, role);
+    if (!idOrToken) return;
+
+    const isNumericId = /^\d+$/.test(idOrToken);
+    const isShareToken = /^[a-f0-9]{64}$/i.test(idOrToken);
+
+    try {
+      if (isShareToken) {
+        console.log('🎯 偵測到短網址 shareToken，改走 handleShareLink:', idOrToken);
+        // ✅ 先處理 share link（裡面匿名成功會把 meetingId 換成數字）
+        await handleShareLink(idOrToken);
+
+        // ✅ handleShareLink 成功後，全域 meetingId 會被設為 anonData.meetingId（數字）
+        if (typeof meetingId !== 'undefined' && meetingId) {
+          startMeetingStatusCheck(meetingId, 'viewer'); // 匿名進來就是 viewer
+        }
+        return;
+      }
+
+      if (isNumericId) {
+        console.log('🎯 偵測到數字 meetingId:', idOrToken);
+        // 這裡是老師/已登入者直接進課程
+        startMeetingStatusCheck(idOrToken, role);
+        return;
+      }
+
+      console.error('❌ 無效的 id 參數:', idOrToken);
+      alert('連結格式不正確');
+    } catch (e) {
+      console.error('❌ 初始化失敗:', e);
+      alert('初始化失敗：' + (e.message || e));
+    }
   });
 
 
@@ -1522,6 +1552,7 @@ micOffBtn.addEventListener('click', () => {
                 // 重要：更新全域變數讓後續初始化能跑
                 authToken = anonData.token; 
                 meetingId = anonData.meetingId;
+                history.replaceState(null, '', `meeting.html?id=${meetingId}`);
                 userRole = 'viewer';
             
                 console.log('✅ 匿名登入成功，進入觀看模式');
