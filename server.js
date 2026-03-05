@@ -2316,7 +2316,7 @@ async function ensureShareLink(meetingId, permission = 'viewer', expiresInHours 
 
   // 沒有 → 新增
   const crypto = require('crypto');
-  const shareCode = crypto.randomBytes(32).toString('hex');
+  const shareCode = crypto.randomBytes(4).toString('hex');
   const expiresAt = new Date(Date.now() + expiresInHours * 3600 * 1000);
   // ⚠️ 關鍵修正：第 4 個參數一定要是 expiresAt（Date），不是 userId！
   await pool.query(
@@ -2716,7 +2716,7 @@ app.post('/api/meetings/:id/share', requireAuth, async (req, res) => {
     }
     
     // 生成分享代碼
-    const shareCode = crypto.randomBytes(32).toString('hex');
+    const shareCode = crypto.randomBytes(4).toString('hex');
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + expiresIn);
     
