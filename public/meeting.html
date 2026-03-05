@@ -1226,25 +1226,25 @@ micOffBtn.addEventListener('click', () => {
         console.log('課程頁面載入完成');
 
         // 1. 先抓取 URL 參數
-        const pathParts = window.location.pathname.split('/');
+        const pathParts = window.location.pathname.split('/').filter(p => p && p !== 'index.html');
         const urlParams = new URLSearchParams(window.location.search);
         
         let shareToken = urlParams.get('share'); // 處理 ?share=token 格式
 
-        // 2. 關鍵修正：如果是 /join/xxx 格式，路徑最後一段就是 shareToken
-        if (pathParts.includes('join')) {
-            shareToken = pathParts[pathParts.length - 1];
-            console.log('從路徑取得 shareToken(短網址模式):', shareToken);
-        } 
+        const joinIndex = pathParts.indexOf('join');
+        if (joinIndex !== -1 && pathParts[joinIndex + 1]) {
+            // 確保抓到的是 join 之後的那一個片段
+            shareToken = pathParts[joinIndex + 1];
+        }
 
-        // 2. [關鍵修改]：如果有 shareToken，優先執行匿名登入
-        if (shareToken) {
-            console.log('偵測到分享連結，嘗試匿名登入...');
+        if (shareToken && shareToken !== 'index.html') {
+            console.log('偵測到有效分享連結，Token:', shareToken);
             const success = await handleShareLink(shareToken);
             if (success) {
-                console.log('匿名登入成功');
+                // 成功後，強制導向帶有正確 ID 的會議頁面
+                window.location.href = `meeting.html?id=${shareToken}`;
                 return;
-            }    
+            }
         }
 
         if (!checkAuth()) {
@@ -1252,25 +1252,17 @@ micOffBtn.addEventListener('click', () => {
             return;
         }
 
-        const urlMeetingId = urlParams.get('id');
-        if (urlMeetingId) {
-            meetingId = urlMeetingId;
-        } else if (!meetingId) {
-            // 如果網址路徑最後一段是 ID 但不是 join 模式
-            meetingId = pathParts[pathParts.length - 1];
-        }
+        const urlId = urlParams.get('id');
+        meetingId = urlId || (shareToken !== 'index.html' ? shareToken : null);
 
         if (!meetingId) {
-            alert('無效的課程ID');
-            window.location.href = 'index.html';
+            console.error('無法識別課程 ID');
+            // 這裡可以導向錯誤頁面或首頁
             return;
         }
 
         console.log('最終使用的 meetingId:', meetingId);
-
-        
-
-        
+ 
         // 載入用戶語言偏好
         await loadUserLanguagePreference();
         
@@ -1507,16 +1499,21 @@ micOffBtn.addEventListener('click', () => {
     // Handle share link
     async function handleShareLink(shareToken) {
         try {
+
+            if (!shareToken || shareToken === 'index.html' || shareToken === 'meeting.html') {
+                return false;
+            }
+
             console.log('🔗 處理分享連結:', shareToken);
 
             // 1. [新增]：嘗試進行匿名登入領取門票
-            const anonResponse = await fetch('/api/auth/anonymous-join', {
+            const anonResponse = await fetch(`${API_BASE_URL}/api/auth/anonymous-join`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ shareToken: shareToken })
             });
 
-            const anonData = await anonResponse.json();
+            const anonData = await anonResponse.json().catch(() => ({ success: false }));
 
             if (anonData.success) {
                 // A. 匿名登入成功：存入 Token 並設定身份為觀看者
