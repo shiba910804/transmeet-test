@@ -192,7 +192,7 @@
         <div id="login-form" class="form-container">
             <div class="form active" id="login">
                 <h2>Login</h2>
-                <input type="text" id="login-fullname" placeholder="Student ID" required>
+                <input type="text" id="login-fullname" placeholder="Account ID" required>
                 <input type="password" id="login-password" placeholder="Password" required>
                 <button id="login-btn" onclick="login()">Login</button>
                 <div style="text-align: right; margin-top: 0.5rem;">
@@ -213,7 +213,7 @@
                         <a href="student-signup.html" class="registration-link">
                             <span class="registration-icon">👨‍🎓</span>
                             <div class="registration-text">
-                                <span class="registration-title-text">Register as Student</span>
+                                <span class="registration-title-text">Register as Participants</span>
                                 <div class="registration-subtitle">Join as a learner</div>
                             </div>
                             <span class="registration-arrow">→</span>
@@ -222,7 +222,7 @@
                         <a href="teacher-signup.html" class="registration-link">
                             <span class="registration-icon">👨‍🏫</span>
                             <div class="registration-text">
-                                <span class="registration-title-text">Register as Teacher</span>
+                                <span class="registration-title-text">Register as Speaker</span>
                                 <div class="registration-subtitle">Create and manage courses</div>
                             </div>
                             <span class="registration-arrow">→</span>
@@ -347,7 +347,7 @@
             const password = document.getElementById('login-password').value;
 
             if (!full_name || !password) {
-                showMessage('login-message', 'Please enter your Student ID and password', false);
+                showMessage('login-message', 'Please enter your Account ID and password', false);
                 return;
             }
 
