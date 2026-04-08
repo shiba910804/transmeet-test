@@ -241,18 +241,22 @@
       background-color: rgba(0, 0, 0, 0.5);
       z-index: 2000;
       animation: fadeIn 0.3s ease;
+      overflow-y: auto;
     }
     
     .share-modal-content {
       position: relative;
       background-color: white;
-      margin: 10% auto;
+      margin: 5vh auto;
       padding: 30px;
       width: 90%;
       max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
       border-radius: 12px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       animation: slideIn 0.3s ease;
+      scrollbar-width: thin;
     }
     
     @keyframes fadeIn {
@@ -1116,12 +1120,6 @@
         分享課程 Share Class
       </h3>
       
-      <div class="share-info">
-        <p><strong>課程名稱Class name：</strong><span id="share-meeting-title">載入中...</span></p>
-        <p><strong>開始時間Start time：</strong><span id="share-start-time">載入中...</span></p>
-        <p><strong>當前參與者Current participants：</strong><span id="share-participant-count">載入中...</span></p>
-      </div>
-      
       <div class="share-link-container">
         <input type="text" class="share-link-input" id="share-link" readonly placeholder="正在生成分享連結...">
         <button class="copy-btn" id="copy-btn" onclick="copyShareLink()" style="display:none">
@@ -1135,6 +1133,12 @@
 
       <div id="qrcode-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 25px 0; padding: 20px; background: #ffffff; border-radius: 12px; border: 1px dashed #ddd;">
         <div id="qrcode"></div> <p style="font-size: 13px; color: #0a2463; margin-top: 12px; font-weight: 500;">📱 手機掃描 QR Code 免登入</p>
+      </div>
+
+      <div class="share-info">
+        <p><strong>課程名稱Class name：</strong><span id="share-meeting-title">載入中...</span></p>
+        <p><strong>開始時間Start time：</strong><span id="share-start-time">載入中...</span></p>
+        <p><strong>當前參與者Current participants：</strong><span id="share-participant-count">載入中...</span></p>
       </div>
 
       <div class="share-link-container" style="margin-top:10px;">
