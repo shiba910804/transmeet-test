@@ -1275,20 +1275,19 @@ micOffBtn.addEventListener('click', () => {
                 }
             }
 
-            if (!user) {
-                user = {
-                    id: 'guest-' + Date.now(),
-                    username: '訪客',
-                    role: 'viewer'
-                };
-            }
-
-            userRole = 'host';
-            console.log('✅ test-room 匿名模式啟用:', user);
-        } else {
-            if (!checkAuth()) {
-                console.log('無登入資訊，跳轉至 auth.html');
-                return;
+            if (user) {
+                userRole = 'host';
+                user.role = 'host';
+                console.log('✅ test-room 主持模式啟用:', user);
+            } else {
+              // 沒登入資料的人 = 匿名觀看者
+              user = {
+                  id: 'guest-' + Date.now(),
+                  username: '訪客',
+                  role: 'viewer'
+              };
+              userRole = 'viewer';
+              console.log('✅ test-room 匿名觀看模式啟用:', user);
             }
         }
  
@@ -1539,10 +1538,15 @@ micOffBtn.addEventListener('click', () => {
         return;
       }
 
-      if (isNumericId || isTestRoom) {
+      if (isNumericId) {
         console.log('🎯 偵測到數字 meetingId:', idOrToken);
         // 這裡是老師/已登入者直接進課程
         startMeetingStatusCheck(idOrToken, role);
+        return;
+      }
+
+      if (isTestRoom) {
+        console.log('🧪 test-room 不啟用狀態輪詢');
         return;
       }
 
@@ -2136,13 +2140,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize meeting
     async function initializeMeeting() {
       try {
-        if (meetingId === 'test-room' && userRole === 'viewer') {    
+        if (meetingId === 'test-room') {    
           meetingTitle.innerHTML = `
             <span>Test Room</span>
-            <svg class="edit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+            <svg class="edit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="${userRole === 'host' ? '' : 'display:none;'}">
               <path d="M15.2322 5.23223L18.7677 8.76777M16.7322 3.73223C17.7085 2.75592 19.2915 2.75592 20.2677 3.73223C21.244 4.70854 21.244 6.29146 20.2677 7.26777L6.5 21.0355H3V17.4644L16.7322 3.73223Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           `;
+
           participants = [user];
           onlineParticipants = new Set([user.id]);
           displayParticipants();
