@@ -742,7 +742,7 @@ io.on('connection', (socket) => {
       if (!meetingId || !originalText) return;
 
       // 直接轉發給此會議房間
-      io.to(`meeting:${meetingId}`).emit('receive_transcript', {
+      io.to(`meeting:${meetingId}`).emit('new_transcript', {
         originalText,
         originalLanguage: originalLanguage || 'unknown',
         speaker: speaker || '發言者',
