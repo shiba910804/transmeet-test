@@ -1255,17 +1255,41 @@ micOffBtn.addEventListener('click', () => {
             }
         }
 
-        if (!checkAuth()) {
-            console.log('無登入資訊，跳轉至 auth.html');
-            return;
-        }
-
         meetingId = urlParams.get('id') || shareToken;
 
         if (!meetingId || meetingId === 'index.html') {
             meetingId = 'test-room';
             history.replaceState(null, '', `meeting.html?id=${meetingId}`);
             console.log('⚠️ 使用測試房間:', meetingId);
+        }
+
+        if (meetingId === 'test-room') {
+            authToken = localStorage.getItem('authToken') || 'test-guest-token';
+
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                try {
+                    user = JSON.parse(savedUser);
+                } catch {
+                    user = null;
+                }
+            }
+
+            if (!user) {
+                user = {
+                    id: 'guest-' + Date.now(),
+                    username: '訪客',
+                    role: 'viewer'
+                };
+            }
+
+            userRole = 'viewer';
+            console.log('✅ test-room 匿名模式啟用:', user);
+        } else {
+            if (!checkAuth()) {
+                console.log('無登入資訊，跳轉至 auth.html');
+                return;
+            }
         }
  
         // 載入用戶語言偏好
@@ -1500,6 +1524,7 @@ micOffBtn.addEventListener('click', () => {
 
     const isNumericId = /^\d+$/.test(idOrToken);
     const isShareToken = /^[a-f0-9]{8}$/i.test(idOrToken);
+    const isTestRoom = idOrToken === 'test-room';
 
     try {
       if (isShareToken) {
@@ -1514,7 +1539,7 @@ micOffBtn.addEventListener('click', () => {
         return;
       }
 
-      if (isNumericId) {
+      if (isNumericId || isTestRoom) {
         console.log('🎯 偵測到數字 meetingId:', idOrToken);
         // 這裡是老師/已登入者直接進課程
         startMeetingStatusCheck(idOrToken, role);
@@ -2111,9 +2136,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize meeting
     async function initializeMeeting() {
       try {
-        // Load meeting details and participants
+        if (meetingId === 'test-room' && userRole === 'viewer') {    
+          meetingTitle.innerHTML = `
+            <span>Test Room</span>
+            <svg class="edit-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+              <path d="M15.2322 5.23223L18.7677 8.76777M16.7322 3.73223C17.7085 2.75592 19.2915 2.75592 20.2677 3.73223C21.244 4.70854 21.244 6.29146 20.2677 7.26777L6.5 21.0355H3V17.4644L16.7322 3.73223Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          participants = [user];
+          onlineParticipants = new Set([user.id]);
+          displayParticipants();
+          meetingStartTime = new Date();
+          updateUIBasedOnRole();
+          console.log('✅ test-room 匿名初始化完成');
+          return;
+        }
+
         await loadMeetingDetails();
-        
         // Set meeting start time
         meetingStartTime = new Date();
         
