@@ -1315,7 +1315,7 @@ micOffBtn.addEventListener('click', () => {
         
         if (!meetingId) {
             alert('無效的課程ID');
-            window.location.href = 'index.html';
+            window.location.href = 'auth.html';
             return;
         }
         
@@ -3303,7 +3303,7 @@ updateDualMicButtons();
       if (user && user.role === 'student') {
         window.location.href = 'student-mainpage.html';
       } else {
-        window.location.href = 'index.html';
+        window.location.href = 'auth.html';
       }
     }
 
