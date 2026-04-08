@@ -1283,7 +1283,7 @@ micOffBtn.addEventListener('click', () => {
                 };
             }
 
-            userRole = 'viewer';
+            userRole = 'host';
             console.log('✅ test-room 匿名模式啟用:', user);
         } else {
             if (!checkAuth()) {
@@ -2324,7 +2324,7 @@ function processParticipantsList(rawParticipants, creatorId) {
   
       // 分享按鈕
       const shareBtn = document.getElementById('share-btn');
-      if (userRole === 'host') {
+      if (userRole === 'host'|| meetingId === 'test-room') {
         shareBtn.style.display = 'flex';
         shareBtn.disabled = false;
         console.log('✅ 顯示分享按鈕（老師）');
