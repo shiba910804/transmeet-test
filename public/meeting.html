@@ -2525,7 +2525,7 @@ function processParticipantsList(rawParticipants, creatorId) {
       window.location.href = `meeting-detail.html?id=${meetingId}`;
     });
 
-    socket.on('receive_transcript', (transcriptData) => {
+    socket.on('new_transcript', (transcriptData) => {
       console.log('收到即時轉錄:', transcriptData);
   
       // 確保不是自己發送的轉錄（避免重複顯示）
@@ -2533,7 +2533,8 @@ function processParticipantsList(rawParticipants, creatorId) {
         addTranscriptionEntry(
           transcriptData.originalText, 
           transcriptData.originalLanguage, 
-          true
+          true,
+          transcriptData.speaker
         );
       }
     });
@@ -2897,7 +2898,7 @@ function processParticipantsList(rawParticipants, creatorId) {
 
                     // 🔥 test-room 直接用 socket 廣播，不走資料庫
                     if (meetingId === 'test-room') {
-                        socket.emit('send_transcript', {
+                        socket.emit('new_transcript', {
                             meetingId: meetingId,
                             originalText: text,
                             originalLanguage: selectedLang,
@@ -3078,7 +3079,7 @@ updateDualMicButtons();
     }
 
     // Add transcription entry to UI
-    function addTranscriptionEntry(text, detectedLanguage, isFinal = true) {
+    function addTranscriptionEntry(text, detectedLanguage, isFinal = true, speakerName = null) {
       if (text.trim() === lastTranscript.trim()) return;
       lastTranscript = text;
 
@@ -3090,7 +3091,7 @@ updateDualMicButtons();
       
       const speaker = document.createElement('span');
       speaker.className = 'transcript-speaker';
-      speaker.textContent = user ? user.username : '發言者';
+      speaker.textContent = speakerName || (user ? user.username : '發言者');
       
       const time = document.createElement('span');
       time.className = 'transcript-time';
