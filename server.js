@@ -691,15 +691,23 @@ io.on('connection', (socket) => {
 
     
     try {
-      // 驗證會議是否存在
-      const meetingCheck = await pool.query('SELECT id, creator_id FROM meetings WHERE id = $1', [meetingId]);
-      if (meetingCheck.rows.length === 0) {
-        socket.emit('error', { message: '會議不存在' });
-        return;
+      if (meetingId !== 'test-room') {
+        const meetingCheck = await pool.query(
+          'SELECT id, creator_id FROM meetings WHERE id = $1',
+          [meetingId]
+        );
+
+        if (meetingCheck.rows.length === 0) {
+          socket.emit('error', { message: '會議不存在' });
+          return;
+        }
+      } else {
+        console.log('🧪 test-room 模式：跳過 DB 會議檢查');
       }
-      
+
       // 加入 Socket.IO 房間
       socket.join(`meeting:${meetingId}`);
+      console.log(`✅ socket ${socket.id} joined room meeting:${meetingId}`);
       
       // 記錄用戶連接信息
       socketUsers.set(socket.id, { userId, meetingId, username, userRole });
@@ -710,9 +718,25 @@ io.on('connection', (socket) => {
         onlineUsers.set(meetingId, new Set());
       }
       onlineUsers.get(meetingId).add(userId);
-      
-      // 獲取更新後的參與者列表
-      const participantsList = await getUpdatedParticipantsList(meetingId);
+
+      let participantsList = [];
+
+      // test-room 不查正式 meetings/participants 表，直接用在線者組一份簡單列表
+      if (meetingId === 'test-room') {
+        participantsList = Array.from(onlineUsers.get(meetingId) || []).map(uid => {
+          const sid = userSockets.get(uid);
+          const info = sid ? Array.from(socketUsers.entries()).find(([k]) => k === sid)?.[1] : null;
+          return {
+            id: uid,
+            username: info?.username || '訪客',
+            role: info?.userRole || 'viewer',
+            joined_at: null,
+            user_role: info?.userRole || 'viewer'
+          };
+        });
+      } else {
+        participantsList = await getUpdatedParticipantsList(meetingId);
+      }
       
       // 向房間內所有用戶廣播更新
       io.to(`meeting:${meetingId}`).emit('participants_updated', {
