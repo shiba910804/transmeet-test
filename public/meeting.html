@@ -1263,8 +1263,9 @@ micOffBtn.addEventListener('click', () => {
         meetingId = urlParams.get('id') || shareToken;
 
         if (!meetingId || meetingId === 'index.html') {
-            console.error('❌ 無法識別課程 ID，目前值為:', meetingId);
-            return;
+            meetingId = 'test-room';
+            history.replaceState(null, '', `meeting.html?id=${meetingId}`);
+            console.log('⚠️ 使用測試房間:', meetingId);
         }
  
         // 載入用戶語言偏好
@@ -1733,94 +1734,33 @@ micOffBtn.addEventListener('click', () => {
     // Generate share link (simplified - always viewer permission)
     async function generateShareLink() {
       try {
-        console.log('🔗 開始生成分享連結...');
-        
-        const response = await fetch(`${API_BASE_URL}/api/meetings/${meetingId}/share`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            permission: 'viewer',  // 固定為viewer權限
-            expiresIn: 24
-          })
-        });
-        
-        // Handle non-OK responses
-        if (!response.ok) {
-          let errorMessage = '生成分享連結失敗';
-          
-          // Try to parse error details from response
-          try {
-            const errorData = await response.json();
-            errorMessage = errorData.error || errorMessage;
-            if (errorData.details) {
-              errorMessage += `: ${errorData.details}`;
-            }
-          } catch (parseError) {
-            // If we can't parse JSON, use status text
-            errorMessage = `伺服器錯誤 (${response.status} ${response.statusText})`;
-          }
-          throw new Error(errorMessage);
-        }
-        
-        const data = await response.json();
-        console.log('✅ 分享連結生成成功:', data);
-        
-        currentShareLink = data.shareUrl;
-        
-        // 1. 更新輸入框文字
+        console.log('🔗 測試版：直接用當前網址');
+
+        currentShareLink = window.location.href;
+
+        // 顯示在 input
         const shareLinkInput = document.getElementById('share-link');
         shareLinkInput.value = currentShareLink;
 
-        // --- [生成 QR Code] ---
+        // 產生 QR Code
         const qrcodeElement = document.getElementById("qrcode");
         if (qrcodeElement) {
-            qrcodeElement.innerHTML = ""; // 每次生成前先清空舊的，防止重複生成
-        
-            // 使用 QRCode 套件生成
-            new QRCode(qrcodeElement, {
-                text: currentShareLink,
-               width: 180,           // 設定寬度
-                height: 180,          // 設定高度
-                colorDark : "#0a2463", // 使用主題藍色
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H // 高容錯等級，適合投影或拍照
-            });
-            console.log('📱 QR Code 已同步更新');
+          qrcodeElement.innerHTML = "";
+
+          new QRCode(qrcodeElement, {
+            text: currentShareLink,
+            width: 180,
+            height: 180,
+            colorDark: "#0a2463",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+          });
         }
-        // -------------------------------
-        
-        // showSuccessMessage('分享連結已生成！');
-        
+
+        console.log('✅ 測試版 QR Code 已生成:', currentShareLink);
+
       } catch (error) {
         console.error('❌ 生成分享連結失敗:', error);
-        
-        const shareLinkInput = document.getElementById('share-link');
-        shareLinkInput.value = '生成連結失敗，請重試';
-        
-        // Show more detailed error message
-        let errorMessage = error.message;
-        // Handle specific database errors
-        if (errorMessage.includes('column "code"') || errorMessage.includes('500')) {
-          errorMessage = '分享功能暫時不可用，請聯繫管理員修復資料庫問題';
-        }
-        showErrorMessage('生成分享連結失敗: ' + errorMessage);
-        
-        // Add retry button
-        const existingRetryBtn = document.querySelector('.retry-share-btn');
-        if (!existingRetryBtn) {
-          const retryBtn = document.createElement('button');
-          retryBtn.className = 'modal-button retry-share-btn';
-          retryBtn.style.backgroundColor = '#ff6b35';
-          retryBtn.style.color = 'white';
-          retryBtn.textContent = '重試';
-          retryBtn.onclick = generateShareLink;
-          
-          const buttonsContainer = document.querySelector('.share-modal-buttons');
-          buttonsContainer.insertBefore(retryBtn, buttonsContainer.firstChild);
-        }
       }
     }
 
