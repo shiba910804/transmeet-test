@@ -2894,11 +2894,20 @@ function processParticipantsList(rawParticipants, creatorId) {
                     });
                     
                     addTranscriptionEntry(text, selectedLang, true);
-                    saveTranscript(text, selectedLang);
+
+                    // 🔥 test-room 直接用 socket 廣播，不走資料庫
+                    if (meetingId === 'test-room') {
+                        socket.emit('send_transcript', {
+                            meetingId: meetingId,
+                            originalText: text,
+                            originalLanguage: selectedLang,
+                            speaker: user ? user.username : '發言者'
+                        });
+                    } else {
+                        saveTranscript(text, selectedLang);
+                    }
                 }
-            } else if (e.result.reason === SpeechSDK.ResultReason.NoMatch) {
-                console.log('未識別到語音內容');
-            }
+            } 
         };
         
         recognizer.canceled = (s, e) => {
