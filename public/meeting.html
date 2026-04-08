@@ -1266,28 +1266,40 @@ micOffBtn.addEventListener('click', () => {
         if (meetingId === 'test-room') {
             authToken = localStorage.getItem('authToken') || 'test-guest-token';
 
-            const savedUser = localStorage.getItem('user');
-            if (savedUser) {
-                try {
-                    user = JSON.parse(savedUser);
-                } catch {
-                    user = null;
-                }
-            }
+            const forcedRole = urlParams.get('role');
 
-            if (user) {
-                userRole = 'host';
-                user.role = 'host';
-                console.log('✅ test-room 主持模式啟用:', user);
+            // 只要是分享連結帶進來的 viewer，一律當觀看者
+            if (forcedRole === 'viewer') {
+                user = {
+                    id: 'guest-' + Date.now(),
+                    username: '訪客',
+                    role: 'viewer'
+                };
+                userRole = 'viewer';
+                console.log('✅ test-room 分享觀看模式啟用:', user);
             } else {
-              // 沒登入資料的人 = 匿名觀看者
-              user = {
-                  id: 'guest-' + Date.now(),
-                  username: '訪客',
-                  role: 'viewer'
-              };
-              userRole = 'viewer';
-              console.log('✅ test-room 匿名觀看模式啟用:', user);
+                const savedUser = localStorage.getItem('user');
+                if (savedUser) {
+                    try {
+                        user = JSON.parse(savedUser);
+                    } catch {
+                        user = null;
+                    }
+                }
+
+                if (user) {
+                    userRole = 'host';
+                    user.role = 'host';
+                    console.log('✅ test-room 主持模式啟用:', user);
+                } else {
+                    user = {
+                        id: 'guest-' + Date.now(),
+                        username: '訪客',
+                        role: 'viewer'
+                    };
+                    userRole = 'viewer';
+                    console.log('✅ test-room 匿名觀看模式啟用:', user);
+                }
             }
         }
  
@@ -1765,7 +1777,9 @@ micOffBtn.addEventListener('click', () => {
       try {
         console.log('🔗 測試版：直接用當前網址');
 
-        currentShareLink = window.location.href;
+        const url = new URL(window.location.href);
+        url.searchParams.set('role', 'viewer');
+        currentShareLink = url.toString();
 
         // 顯示在 input
         const shareLinkInput = document.getElementById('share-link');
